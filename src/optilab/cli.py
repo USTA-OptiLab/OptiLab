@@ -4,6 +4,7 @@ import argparse
 import sys
 
 from . import reporte
+from .analisis import comparar_metodos
 from .modi import resolver
 from .opciones import CRITERIOS_ENTRADA, METODOS_INICIALES, MODOS, Opciones
 from .problema import ProblemaTransporte
@@ -42,6 +43,8 @@ def crear_parser():
     p.add_argument("--no-costos-reducidos", action="store_true", help="ocultar los Δ")
     p.add_argument("--no-ciclo", action="store_true", help="ocultar ciclo, θ y celda que sale")
     p.add_argument("--no-asignacion", action="store_true", help="ocultar la tabla de asignación de cada iteración")
+    p.add_argument("--sensibilidad", action="store_true", help="agregar el análisis de sensibilidad de costos")
+    p.add_argument("--comparar", action="store_true", help="comparar las tres soluciones iniciales")
     p.add_argument("--paso-a-paso", action="store_true", help="pausar tras cada bloque (Enter para continuar)")
     p.add_argument("--max", type=int, default=100, dest="max_iteraciones", help="máximo de iteraciones")
     p.add_argument("--decimales", type=int, default=2)
@@ -60,6 +63,7 @@ def opciones_desde_args(a):
         mostrar_costos_reducidos=not a.no_costos_reducidos,
         mostrar_ciclo=not a.no_ciclo,
         mostrar_asignacion_por_iteracion=not a.no_asignacion,
+        mostrar_sensibilidad=a.sensibilidad,
         paso_a_paso=a.paso_a_paso,
         max_iteraciones=a.max_iteraciones,
         decimales=a.decimales,
@@ -73,6 +77,7 @@ def main(argv=None):
         opciones = opciones_desde_args(args)
         problema = ProblemaTransporte.desde_json(args.archivo) if args.archivo else problema_interactivo()
         resultado = resolver(problema, opciones)
+        comparacion = comparar_metodos(problema, opciones) if args.comparar else None
     except (ValueError, OSError, RuntimeError) as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
@@ -88,6 +93,9 @@ def main(argv=None):
                 input("[Enter para continuar] ")
             except EOFError:
                 opciones.paso_a_paso = False
+
+    if comparacion:
+        print(reporte.bloque_comparacion(comparacion, opciones.modo, opciones.decimales) + "\n")
 
     if opciones.exportar:
         reporte.exportar(resultado, opciones.exportar)

@@ -20,6 +20,7 @@ class Opciones:
     mostrar_costos_reducidos: bool = True
     mostrar_ciclo: bool = True
     mostrar_asignacion_por_iteracion: bool = True
+    mostrar_sensibilidad: bool = False
     paso_a_paso: bool = False
 
     max_iteraciones: int = 100
