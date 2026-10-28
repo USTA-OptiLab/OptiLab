@@ -143,7 +143,7 @@ async function resolveProblem() {
   }
   if (!bridgeReady.value) {
     error.value =
-      'El motor Python no está disponible. Abre este módulo con pywebview: python -m optilab.graphic_method.'
+      'El motor Python no está disponible. Ejecuta la app con `just dev` o `just run`.'
     return
   }
 
