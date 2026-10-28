@@ -42,6 +42,7 @@ def solve_vogel(costs, supply, demand):
     n_rows, n_cols = len(supply), len(demand)
     allocation = [[0.0] * n_cols for _ in range(n_rows)]
     rows, cols = set(range(n_rows)), set(range(n_cols))
+    start_supply, start_demand = supply[:], demand[:]
     steps = []
 
     while rows and cols:
@@ -53,7 +54,9 @@ def solve_vogel(costs, supply, demand):
         candidates = [
             (-p, min(costs[i][j] for j in cols), 0, i) for i, p in row_pen.items()
         ] + [(-p, min(costs[i][j] for i in rows), 1, j) for j, p in col_pen.items()]
-        _, _, is_col, idx = min(candidates)
+        best = min(candidates)
+        _, _, is_col, idx = best
+        tied = sum(1 for c in candidates if c[0] == best[0])
 
         if is_col:
             i = min(rows, key=lambda r: (costs[r][idx], r))
@@ -62,25 +65,42 @@ def solve_vogel(costs, supply, demand):
             i = idx
             j = min(cols, key=lambda c: (costs[idx][c], c))
 
+        step = {
+            "active_rows": sorted(rows),
+            "active_cols": sorted(cols),
+            "row_penalties": {r: row_pen[r] for r in sorted(row_pen)},
+            "col_penalties": {c: col_pen[c] for c in sorted(col_pen)},
+            "supply_before": supply[:],
+            "demand_before": demand[:],
+            "max_penalty": -best[0],
+            "tied_lines": tied,
+            "line": ["column" if is_col else "row", idx],
+        }
+
         qty = min(supply[i], demand[j])
         allocation[i][j] = qty
         supply[i] -= qty
         demand[j] -= qty
-        steps.append(
-            {
-                "row_penalties": {r: row_pen[r] for r in sorted(row_pen)},
-                "col_penalties": {c: col_pen[c] for c in sorted(col_pen)},
-                "cell": [i, j],
-                "quantity": qty,
-            }
-        )
 
         # On a tie only one line is dropped, so the other stays with zero
         # residual and still gets a (zero) basic cell: the degenerate case.
         if math.isclose(supply[i], 0.0, abs_tol=1e-12):
             rows.discard(i)
+            crossed = ["row", i]
         else:
             cols.discard(j)
+            crossed = ["column", j]
+
+        step.update(
+            {
+                "cell": [i, j],
+                "quantity": qty,
+                "crossed": crossed,
+                "supply_after": supply[:],
+                "demand_after": demand[:],
+            }
+        )
+        steps.append(step)
 
     total_cost = sum(
         allocation[i][j] * costs[i][j] for i in range(n_rows) for j in range(n_cols)
@@ -90,23 +110,97 @@ def solve_vogel(costs, supply, demand):
         "total_cost": total_cost,
         "steps": steps,
         "dummy": dummy,
+        "costs": costs,
+        "supply": start_supply,
+        "demand": start_demand,
     }
 
 
-def _print_result(title, result):
-    print(title)
-    for row in result["allocation"]:
-        print("  " + "  ".join(f"{q:g}".rjust(6) for q in row))
-    print(f"  total cost: {result['total_cost']:g}  dummy: {result['dummy']}")
-    for n, step in enumerate(result["steps"], 1):
-        i, j = step["cell"]
-        rows = {r + 1: p for r, p in step["row_penalties"].items()}
-        cols = {c + 1: p for c, p in step["col_penalties"].items()}
+def _labels(result):
+    n_rows, n_cols = len(result["supply"]), len(result["demand"])
+    rows = [f"S{i + 1}" for i in range(n_rows)]
+    cols = [f"D{j + 1}" for j in range(n_cols)]
+    if result["dummy"] == "row":
+        rows[-1] = "Dummy"
+    elif result["dummy"] == "column":
+        cols[-1] = "Dummy"
+    return rows, cols
+
+
+def _print_step(n, step, result, row_names, col_names):
+    w = 8
+    costs = result["costs"]
+    print(f"  Step {n}")
+    header = "".ljust(w) + "".join(col_names[j].rjust(w) for j in step["active_cols"])
+    print("    " + header + "Supply".rjust(w) + "Penalty".rjust(w))
+    for i in step["active_rows"]:
+        cells = "".join(f"{costs[i][j]:g}".rjust(w) for j in step["active_cols"])
         print(
-            f"  step {n}: row penalties {rows}, col penalties {cols} -> "
-            f"cell ({i + 1}, {j + 1}) gets {step['quantity']:g}"
+            "    "
+            + row_names[i].ljust(w)
+            + cells
+            + f"{step['supply_before'][i]:g}".rjust(w)
+            + f"{step['row_penalties'][i]:g}".rjust(w)
+        )
+    print(
+        "    "
+        + "Demand".ljust(w)
+        + "".join(f"{step['demand_before'][j]:g}".rjust(w) for j in step["active_cols"])
+    )
+    print(
+        "    "
+        + "Penalty".ljust(w)
+        + "".join(f"{step['col_penalties'][j]:g}".rjust(w) for j in step["active_cols"])
+    )
+
+    kind, idx = step["line"]
+    names = row_names if kind == "row" else col_names
+    i, j = step["cell"]
+    line = f"    Highest penalty: {step['max_penalty']:g} ({kind} {names[idx]})."
+    if step["tied_lines"] > 1:
+        line += (
+            f" Tie among {step['tied_lines']} lines: chose the one with the lowest"
+            " cost, then rows before columns, then the first index."
+        )
+    print(line)
+    print(
+        f"    Lowest cost in that {kind}: cell ({row_names[i]}, {col_names[j]})"
+        f" = {result['costs'][i][j]:g}"
+    )
+    print(
+        f"    Assign min({step['supply_before'][i]:g}, {step['demand_before'][j]:g})"
+        f" = {step['quantity']:g} to ({row_names[i]}, {col_names[j]})"
+    )
+    ckind, cidx = step["crossed"]
+    cname = (row_names if ckind == "row" else col_names)[cidx]
+    reason = "supply exhausted" if ckind == "row" else "demand covered"
+    print(f"    Crossed out: {ckind} {cname} ({reason})")
+    left_s = ", ".join(
+        f"{row_names[r]}={step['supply_after'][r]:g}" for r in step["active_rows"]
+    )
+    left_d = ", ".join(
+        f"{col_names[c]}={step['demand_after'][c]:g}" for c in step["active_cols"]
+    )
+    print(f"    Remaining supply: {left_s} | demand: {left_d}\n")
+
+
+def _print_result(title, result):
+    row_names, col_names = _labels(result)
+    print(title)
+    if result["dummy"]:
+        total_s, total_d = sum(result["supply"]), sum(result["demand"])
+        print(
+            f"  Unbalanced problem: added a dummy {result['dummy']} with zero costs"
+            f" (supply and demand now both {max(total_s, total_d):g})."
         )
     print()
+    for n, step in enumerate(result["steps"], 1):
+        _print_step(n, step, result, row_names, col_names)
+    print("  Final allocation")
+    print("    " + "".ljust(8) + "".join(c.rjust(8) for c in col_names))
+    for name, row in zip(row_names, result["allocation"]):
+        print("    " + name.ljust(8) + "".join(f"{q:g}".rjust(8) for q in row))
+    print(f"  Total cost: {result['total_cost']:g}\n")
 
 
 def _ask_number(prompt, kind=float, minimum=0):

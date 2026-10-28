@@ -7,7 +7,7 @@ def test_menu_solves_user_exercise(monkeypatch, capsys):
     answers = iter(["2", "2", "3", "30 40", "20 15 10", "4 6 8", "5 3 7", "0"])
     monkeypatch.setattr("builtins.input", lambda _="": next(answers))
     main()
-    assert "total cost: 210" in capsys.readouterr().out
+    assert "Total cost: 210" in capsys.readouterr().out
 
 
 def test_menu_examples_and_invalid_option(monkeypatch, capsys):
@@ -16,7 +16,28 @@ def test_menu_examples_and_invalid_option(monkeypatch, capsys):
     main()
     out = capsys.readouterr().out
     assert "invalid option" in out
-    assert "total cost: 779" in out
+    assert "Total cost: 779" in out
+
+
+def test_menu_prints_detailed_steps(monkeypatch, capsys):
+    answers = iter(["2", "2", "3", "30 40", "20 15 10", "4 6 8", "5 3 7", "0"])
+    monkeypatch.setattr("builtins.input", lambda _="": next(answers))
+    main()
+    out = capsys.readouterr().out
+    assert "added a dummy column" in out
+    assert "Step 1" in out
+    assert "Highest penalty: 4 (row S1)" in out
+    assert "Crossed out: column Dummy (demand covered)" in out
+    assert "Remaining supply:" in out
+
+
+def test_steps_record_crossed_lines_and_remaining():
+    result = solve_vogel([[2, 3], [4, 1]], [10, 10], [10, 10])
+    first = result["steps"][0]
+    assert first["supply_before"] == [10, 10]
+    assert first["supply_after"][first["cell"][0]] == 0
+    assert first["crossed"][0] == "row"
+    assert result["costs"] == [[2, 3], [4, 1]]
 
 
 def assert_respects_totals(result, supply, demand, dummy_supply=0, dummy_demand=0):
