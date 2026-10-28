@@ -4,7 +4,7 @@ from optilab.vogel import main, solve_vogel
 
 
 def test_menu_solves_user_exercise(monkeypatch, capsys):
-    answers = iter(["2", "2", "3", "30 40", "20 15 10", "4 6 8", "5 3 7", "0"])
+    answers = iter(["2", "1", "2", "3", "30 40", "20 15 10", "4 6 8", "5 3 7", "0"])
     monkeypatch.setattr("builtins.input", lambda _="": next(answers))
     main()
     assert "Total cost: 210" in capsys.readouterr().out
@@ -20,7 +20,7 @@ def test_menu_examples_and_invalid_option(monkeypatch, capsys):
 
 
 def test_menu_prints_detailed_steps(monkeypatch, capsys):
-    answers = iter(["2", "2", "3", "30 40", "20 15 10", "4 6 8", "5 3 7", "0"])
+    answers = iter(["2", "1", "2", "3", "30 40", "20 15 10", "4 6 8", "5 3 7", "0"])
     monkeypatch.setattr("builtins.input", lambda _="": next(answers))
     main()
     out = capsys.readouterr().out
@@ -107,3 +107,34 @@ def test_single_cell():
 def test_invalid_input_raises(costs, supply, demand):
     with pytest.raises(ValueError):
         solve_vogel(costs, supply, demand)
+
+
+def test_maximize_matches_minimizing_transformed_costs():
+    profits = [[19, 30, 50, 10], [70, 30, 40, 60], [40, 8, 70, 20]]
+    supply, demand = [7, 9, 18], [5, 8, 7, 14]
+    result = solve_vogel(profits, supply, demand, maximize=True)
+    flipped = solve_vogel([[70 - v for v in row] for row in profits], supply, demand)
+    assert result["allocation"] == flipped["allocation"]
+    assert result["total_cost"] == 1548
+    assert result["maximize"] is True
+    assert_respects_totals(result, supply, demand)
+
+
+def test_maximize_unbalanced_uses_zero_profit_dummy():
+    result = solve_vogel([[4, 6, 8], [5, 3, 7]], [30, 40], [20, 15, 10], maximize=True)
+    assert result["dummy"] == "column"
+    assert all(row[-1] == 0 for row in result["costs"])
+    assert_respects_totals(result, [30, 40], [20, 15, 10], dummy_demand=25)
+
+
+def test_minimize_is_default():
+    assert solve_vogel([[7]], [5], [5])["maximize"] is False
+
+
+def test_menu_maximize_option(monkeypatch, capsys):
+    answers = iter(["2", "2", "2", "3", "30 40", "20 15 10", "4 6 8", "5 3 7", "0"])
+    monkeypatch.setattr("builtins.input", lambda _="": next(answers))
+    main()
+    out = capsys.readouterr().out
+    assert "Highest profit in that" in out
+    assert "Total profit:" in out
