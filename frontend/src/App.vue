@@ -1,6 +1,7 @@
 <script setup>
 import { shallowRef } from 'vue'
 import GranMMethod from './gran-m-method/GranMMethod.vue'
+import TwoPhaseSolver from './doubolfeis-metod/TwoPhaseSolver.vue'
 
 // Cada método nuevo se agrega aquí para que aparezca en el menú
 const methods = [
@@ -9,6 +10,12 @@ const methods = [
     name: 'Método de la Gran M',
     description: 'Programación lineal con penalización M para las variables artificiales.',
     component: GranMMethod,
+  },
+  {
+    id: 'two-phase',
+    name: 'Método de las Dos Fases',
+    description: 'Programación lineal con variables artificiales: factibilidad y luego optimalidad.',
+    component: TwoPhaseSolver,
   },
 ]
 
