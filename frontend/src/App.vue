@@ -1,13 +1,17 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import ComparisonTable from './components/ComparisonTable.vue'
 import NetworkDiagram from './components/NetworkDiagram.vue'
 import OptionsPanel from './components/OptionsPanel.vue'
 import ProblemGrid from './components/ProblemGrid.vue'
 import ProcedureOptions from './components/ProcedureOptions.vue'
 import ReportView from './components/ReportView.vue'
+import ResultBanner from './components/ResultBanner.vue'
 import SensitivityTable from './components/SensitivityTable.vue'
 import TableDiagram from './components/TableDiagram.vue'
+
+const TAMANO_TEXTO_DEFECTO = 12
+const TAMANO_TEXTO_RANGO = [8, 22]
 
 const problema = ref({
   m: 3,
@@ -47,6 +51,16 @@ const vistaIteracion = ref(0)
 const pestana = ref('procedimiento')
 const estado = ref('Listo. Edita los datos y pulsa Resolver.')
 const obsoleto = ref(false)
+const tamanoTexto = ref(TAMANO_TEXTO_DEFECTO)
+
+const bannerEstilo = computed(() => {
+  if (obsoleto.value) return 'aviso'
+  if (!resultado.value) return 'info'
+  return resultado.value.optimo ? 'ok' : 'aviso'
+})
+const bannerTexto = computed(() =>
+  obsoleto.value ? 'Los datos u opciones cambiaron: pulsa Resolver para actualizar el resultado' : estado.value,
+)
 
 let api = null
 function esperarApi() {
@@ -61,10 +75,42 @@ async function cargarEjemplo() {
   if (r?.problema) problema.value = r.problema
 }
 
+function cambiarZoom(delta) {
+  tamanoTexto.value =
+    delta === 0
+      ? TAMANO_TEXTO_DEFECTO
+      : Math.max(TAMANO_TEXTO_RANGO[0], Math.min(TAMANO_TEXTO_RANGO[1], tamanoTexto.value + delta))
+}
+
+function manejarAtajos(e) {
+  if (!(e.ctrlKey || e.metaKey)) return
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    resolverProblema()
+  } else if (e.key.toLowerCase() === 'o') {
+    e.preventDefault()
+    abrir()
+  } else if (e.key.toLowerCase() === 's') {
+    e.preventDefault()
+    guardar()
+  } else if (e.key === '+' || e.key === '=') {
+    e.preventDefault()
+    cambiarZoom(1)
+  } else if (e.key === '-') {
+    e.preventDefault()
+    cambiarZoom(-1)
+  } else if (e.key === '0') {
+    e.preventDefault()
+    cambiarZoom(0)
+  }
+}
+
 onMounted(async () => {
+  window.addEventListener('keydown', manejarAtajos)
   api = await esperarApi()
   await cargarEjemplo()
 })
+onUnmounted(() => window.removeEventListener('keydown', manejarAtajos))
 
 function marcarObsoleto() {
   if (resultado.value) obsoleto.value = true
@@ -143,36 +189,41 @@ const PESTANAS = [
 
 <template>
   <div class="flex h-screen flex-col gap-3 bg-neutral-950 p-4 text-neutral-100">
-    <h1 class="text-xl font-semibold">OptiLab — Método MODI</h1>
+    <div class="flex items-baseline justify-between">
+      <h1 class="text-xl font-semibold">OptiLab — Método MODI</h1>
+      <p class="text-xs text-neutral-500">Ctrl+Enter resolver · Ctrl+O abrir · Ctrl+S guardar · Ctrl +/− tamaño del texto</p>
+    </div>
 
     <div class="grid flex-1 grid-cols-[320px_1fr] gap-4 overflow-hidden">
-      <div class="space-y-4 overflow-y-auto pr-1">
-        <section class="space-y-2 rounded border border-neutral-800 p-3">
-          <h2 class="text-sm font-semibold text-neutral-300">Problema</h2>
-          <ProblemGrid ref="grilla" v-model="problema" @change="marcarObsoleto" />
-          <div class="flex flex-wrap gap-2 pt-1 text-xs">
-            <button type="button" class="rounded border border-neutral-700 px-2 py-1 hover:bg-neutral-800" @click="abrir">Abrir…</button>
-            <button type="button" class="rounded border border-neutral-700 px-2 py-1 hover:bg-neutral-800" @click="guardar">Guardar…</button>
-            <button type="button" class="rounded border border-neutral-700 px-2 py-1 hover:bg-neutral-800" @click="cargarEjemplo">Ejemplo</button>
-          </div>
-        </section>
+      <div class="flex flex-col overflow-hidden">
+        <div class="flex-1 space-y-4 overflow-y-auto pr-1">
+          <section class="space-y-2 rounded border border-neutral-800 p-3">
+            <h2 class="text-sm font-semibold text-neutral-300">Problema</h2>
+            <ProblemGrid ref="grilla" v-model="problema" @change="marcarObsoleto" />
+            <div class="flex flex-wrap gap-2 pt-1 text-xs">
+              <button type="button" class="rounded border border-neutral-700 px-2 py-1 hover:bg-neutral-800" @click="abrir">Abrir…</button>
+              <button type="button" class="rounded border border-neutral-700 px-2 py-1 hover:bg-neutral-800" @click="guardar">Guardar…</button>
+              <button type="button" class="rounded border border-neutral-700 px-2 py-1 hover:bg-neutral-800" @click="cargarEjemplo">Ejemplo</button>
+            </div>
+          </section>
 
-        <section class="space-y-2 rounded border border-neutral-800 p-3">
-          <h2 class="text-sm font-semibold text-neutral-300">Método</h2>
-          <OptionsPanel v-model="opciones" />
-        </section>
+          <section class="space-y-2 rounded border border-neutral-800 p-3">
+            <h2 class="text-sm font-semibold text-neutral-300">Método</h2>
+            <OptionsPanel v-model="opciones" />
+          </section>
 
-        <section class="space-y-2 rounded border border-neutral-800 p-3">
-          <h2 class="text-sm font-semibold text-neutral-300">Procedimiento</h2>
-          <ProcedureOptions v-model="opciones" />
-        </section>
+          <section class="space-y-2 rounded border border-neutral-800 p-3">
+            <h2 class="text-sm font-semibold text-neutral-300">Procedimiento</h2>
+            <ProcedureOptions v-model="opciones" />
+          </section>
+        </div>
 
         <button
           type="button"
-          class="w-full rounded bg-indigo-600 px-4 py-2 font-medium hover:bg-indigo-500"
+          class="mt-3 w-full shrink-0 rounded bg-indigo-600 px-4 py-2 font-medium hover:bg-indigo-500"
           @click="resolverProblema"
         >
-          Resolver
+          Resolver <span class="font-normal text-indigo-200">(Ctrl+Enter)</span>
         </button>
       </div>
 
@@ -189,9 +240,7 @@ const PESTANAS = [
           </button>
         </div>
 
-        <p class="mb-2 rounded bg-neutral-900 px-3 py-2 text-sm" :class="obsoleto ? 'text-amber-400' : 'text-neutral-300'">
-          {{ obsoleto ? 'Los datos u opciones cambiaron: pulsa Resolver para actualizar el resultado' : estado }}
-        </p>
+        <ResultBanner :estilo="bannerEstilo" :texto="bannerTexto" />
 
         <div class="mb-2 flex gap-1 border-b border-neutral-800 text-sm">
           <button
@@ -203,7 +252,10 @@ const PESTANAS = [
         </div>
 
         <div class="flex-1 overflow-hidden">
-          <ReportView v-if="pestana === 'procedimiento'" :bloques="resultado?.bloques ?? []" :paso-a-paso="opciones.paso_a_paso" />
+          <ReportView
+            v-if="pestana === 'procedimiento'"
+            :bloques="resultado?.bloques ?? []" :paso-a-paso="opciones.paso_a_paso" :tamano-texto="tamanoTexto"
+          />
           <TableDiagram
             v-else-if="pestana === 'tabla' && iteracionActual"
             :problema="resultado.problema" :iteracion="iteracionActual" :decimales="opciones.decimales"

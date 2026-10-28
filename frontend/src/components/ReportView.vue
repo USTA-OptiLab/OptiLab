@@ -4,6 +4,7 @@ import { computed, ref, watch } from 'vue'
 const props = defineProps({
   bloques: { type: Array, default: () => [] },
   pasoAPaso: { type: Boolean, default: false },
+  tamanoTexto: { type: Number, default: 12 },
 })
 
 const paso = ref(0)
@@ -45,7 +46,10 @@ defineExpose({ resolver: () => (paso.value = 0) })
 
 <template>
   <div class="flex h-full flex-col">
-    <pre class="flex-1 overflow-auto rounded border border-neutral-800 bg-neutral-950 p-3 font-mono text-xs leading-5"><span
+    <pre
+      class="flex-1 overflow-auto rounded border border-neutral-800 bg-neutral-950 p-3 font-mono leading-5"
+      :style="{ fontSize: `${tamanoTexto}px` }"
+    ><span
         v-for="(l, k) in lineas" :key="k" :class="l.clase"
       >{{ l.texto }}<br /></span></pre>
     <div v-if="pasoAPaso" class="mt-2 flex items-center gap-2 text-sm">
