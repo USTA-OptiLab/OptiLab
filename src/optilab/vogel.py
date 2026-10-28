@@ -29,7 +29,10 @@ def solve_vogel(costs, supply, demand, maximize=False):
         raise ValueError("costs must be a non-empty matrix")
     if any(len(row) != len(demand) for row in costs) or len(costs) != len(supply):
         raise ValueError("costs dimensions must match supply and demand")
-    if any(v < 0 for v in supply + demand) or any(c < 0 for row in costs for c in row):
+    values = supply + demand + [c for row in costs for c in row]
+    if not all(math.isfinite(v) for v in values):
+        raise ValueError("costs, supply and demand must be finite numbers")
+    if any(v < 0 for v in values):
         raise ValueError("costs, supply and demand must be non-negative")
 
     dummy = None
@@ -236,8 +239,8 @@ def _ask_list(prompt, length):
             continue
         if len(values) != length:
             print(f"  expected {length} values, got {len(values)}")
-        elif any(v < 0 for v in values):
-            print("  values must be >= 0")
+        elif not all(math.isfinite(v) and v >= 0 for v in values):
+            print("  values must be finite numbers >= 0")
         else:
             return values
 
@@ -295,6 +298,13 @@ def _run_examples():
 
 
 def main():
+    try:
+        _menu()
+    except (EOFError, KeyboardInterrupt):
+        print()
+
+
+def _menu():
     while True:
         print("Vogel approximation method")
         print("  1. Examples")
