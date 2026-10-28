@@ -1,6 +1,22 @@
 import pytest
 
-from optilab.vogel import solve_vogel
+from optilab.vogel import main, solve_vogel
+
+
+def test_menu_solves_user_exercise(monkeypatch, capsys):
+    answers = iter(["2", "2", "3", "30 40", "20 15 10", "4 6 8", "5 3 7", "0"])
+    monkeypatch.setattr("builtins.input", lambda _="": next(answers))
+    main()
+    assert "total cost: 210" in capsys.readouterr().out
+
+
+def test_menu_examples_and_invalid_option(monkeypatch, capsys):
+    answers = iter(["x", "1", "0"])
+    monkeypatch.setattr("builtins.input", lambda _="": next(answers))
+    main()
+    out = capsys.readouterr().out
+    assert "invalid option" in out
+    assert "total cost: 779" in out
 
 
 def assert_respects_totals(result, supply, demand, dummy_supply=0, dummy_demand=0):
