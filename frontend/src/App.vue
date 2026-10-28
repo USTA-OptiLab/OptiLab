@@ -31,7 +31,7 @@ const opciones = reactive({
   metodo_inicial: 'vogel',
   modo: 'minimizar',
   criterio_entrada: 'mas_negativo',
-  mostrar_procedimiento: true,
+  mostrar_procedimiento: false,
   mostrar_inicial: true,
   mostrar_potenciales: true,
   mostrar_costos_reducidos: true,

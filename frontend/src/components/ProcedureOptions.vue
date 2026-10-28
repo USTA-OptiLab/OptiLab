@@ -1,4 +1,6 @@
 <script setup>
+import { computed } from 'vue'
+
 const opciones = defineModel({ required: true })
 
 const CASILLAS = [
@@ -8,22 +10,32 @@ const CASILLAS = [
   ['mostrar_costos_reducidos', 'Costos reducidos Δ'],
   ['mostrar_ciclo', 'Ciclo, θ y celda que sale'],
 ]
+
+// Un solo interruptor: "paso a paso" también decide si se muestra el procedimiento
+// completo o solo el resultado final, en vez de dos opciones independientes.
+const pasoAPaso = computed({
+  get: () => opciones.value.paso_a_paso,
+  set: (valor) => {
+    opciones.value.paso_a_paso = valor
+    opciones.value.mostrar_procedimiento = valor
+  },
+})
 </script>
 
 <template>
   <div class="space-y-1 text-sm">
     <label class="flex items-center gap-2">
-      <input v-model="opciones.mostrar_procedimiento" type="checkbox" />
-      Mostrar el procedimiento completo
+      <input v-model="pasoAPaso" type="checkbox" />
+      Mostrar paso a paso
     </label>
     <p class="pl-5 text-xs text-neutral-500">Sin marcar: solo el resultado final</p>
-    <label class="flex items-center gap-2">
-      <input v-model="opciones.paso_a_paso" type="checkbox" />
-      Pausar paso a paso
-    </label>
     <p class="pt-2 text-neutral-400">Incluir en cada paso:</p>
-    <label v-for="[attr, texto] in CASILLAS" :key="attr" class="flex items-center gap-2 pl-3">
-      <input v-model="opciones[attr]" type="checkbox" />
+    <label
+      v-for="[attr, texto] in CASILLAS" :key="attr"
+      class="flex items-center gap-2 pl-3"
+      :class="{ 'opacity-40': !pasoAPaso }"
+    >
+      <input v-model="opciones[attr]" type="checkbox" :disabled="!pasoAPaso" />
       {{ texto }}
     </label>
   </div>
