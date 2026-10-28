@@ -6,6 +6,8 @@ from pathlib import Path
 
 import numpy as np
 
+from .analisis import sensibilidad
+
 NOMBRES_METODO = {
     "noroeste": "Esquina noroeste",
     "costo_minimo": "Costo mínimo",
@@ -181,6 +183,42 @@ def bloque_final(r):
     return "\n".join(texto)
 
 
+def _limite(x, dec):
+    return "-∞" if x == float("-inf") else "+∞" if x == float("inf") else _num(x, dec)
+
+
+def bloque_sensibilidad(r):
+    dec = r.opciones.decimales
+    filas = [
+        [f"{f.origen} → {f.destino}", "básica" if f.basica else "no básica", _num(f.costo, dec),
+         f"[{_limite(f.minimo, dec)}, {_limite(f.maximo, dec)}]"]
+        for f in sensibilidad(r)
+    ]
+    return "\n".join([
+        _titulo("ANÁLISIS DE SENSIBILIDAD DE COSTOS"),
+        _tabla(["Ruta", "Tipo", "Costo", "Rango del costo"], filas),
+        "",
+        "Rango en el que puede variar el costo de esa ruta (los demás fijos) sin que cambie",
+        "la solución óptima. En rutas básicas el costo total sí cambia con el costo unitario.",
+        "Con soluciones degeneradas o alternativas los rangos son los de la base final.",
+    ])
+
+
+def bloque_comparacion(filas, modo="minimizar", dec=2):
+    mejor = (max if modo == "maximizar" else min)(f.costo_final for f in filas)
+    cuerpo = [
+        [NOMBRES_METODO[f.metodo], _num(f.costo_inicial, dec), str(f.iteraciones), _num(f.costo_final, dec)]
+        for f in filas
+    ]
+    texto = [_titulo("COMPARACIÓN DE SOLUCIONES INICIALES"),
+             _tabla(["Método inicial", "Costo inicial", "Iteraciones MODI", "Costo final"], cuerpo)]
+    if all(abs(f.costo_final - mejor) < 1e-9 for f in filas):
+        texto.append(f"\nLos tres métodos llegan al mismo óptimo ({_num(mejor, dec)}).")
+    menos = min(filas, key=lambda f: f.iteraciones)
+    texto.append(f"Menos iteraciones de mejora: {NOMBRES_METODO[menos.metodo]} ({menos.iteraciones}).")
+    return "\n".join(texto)
+
+
 def secciones(r, completo=False):
     """Lista de bloques de texto según las opciones; `completo` ignora los interruptores de visibilidad."""
     o = r.opciones
@@ -188,16 +226,18 @@ def secciones(r, completo=False):
         o = replace(
             o, mostrar_procedimiento=True, mostrar_inicial=True, mostrar_potenciales=True,
             mostrar_costos_reducidos=True, mostrar_ciclo=True, mostrar_asignacion_por_iteracion=True,
+            mostrar_sensibilidad=True,
         )
         r = replace(r, opciones=o)
+    extra = [bloque_sensibilidad(r)] if o.mostrar_sensibilidad and r.optimo else []
     if not o.mostrar_procedimiento:
-        return [bloque_final(r)]
+        return [bloque_final(r)] + extra
     bloques = [bloque_datos(r)]
     if o.mostrar_inicial:
         bloques.append(bloque_inicial(r))
     bloques.extend(bloque_iteracion(r, it) for it in r.historial)
     bloques.append(bloque_final(r))
-    return bloques
+    return bloques + extra
 
 
 def formatear(r, completo=False):
