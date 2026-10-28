@@ -25,7 +25,7 @@ const pasoAPaso = computed({
 <template>
   <div class="space-y-1 text-sm">
     <label class="flex items-center gap-2">
-      <input v-model="pasoAPaso" type="checkbox" />
+      <input v-model="pasoAPaso" type="checkbox" class="h-3.5 w-3.5 rounded border-neutral-600 bg-neutral-900 accent-indigo-500" />
       Mostrar paso a paso
     </label>
     <p class="pl-5 text-xs text-neutral-500">Sin marcar: solo el resultado final</p>
@@ -35,7 +35,10 @@ const pasoAPaso = computed({
       class="flex items-center gap-2 pl-3"
       :class="{ 'opacity-40': !pasoAPaso }"
     >
-      <input v-model="opciones[attr]" type="checkbox" :disabled="!pasoAPaso" />
+      <input
+        v-model="opciones[attr]" type="checkbox" :disabled="!pasoAPaso"
+        class="h-3.5 w-3.5 rounded border-neutral-600 bg-neutral-900 accent-indigo-500"
+      />
       {{ texto }}
     </label>
   </div>

@@ -4,6 +4,11 @@ import { nextTick } from 'vue'
 const problema = defineModel({ required: true })
 const emit = defineEmits(['change'])
 
+const fieldClass =
+  'w-16 rounded-md border border-neutral-700 bg-neutral-950 px-1 text-center text-sm text-neutral-100 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20'
+const headerFieldClass = `${fieldClass} py-0.5 font-semibold`
+const cellFieldClass = `${fieldClass} py-1`
+
 function redimensionar(m, n) {
   m = Math.max(1, Math.min(12, m))
   n = Math.max(1, Math.min(12, n))
@@ -56,7 +61,7 @@ defineExpose({ limpiar })
         Orígenes
         <input
           type="number" min="1" max="12" :value="problema.m"
-          class="w-14 rounded border border-neutral-700 bg-neutral-900 px-1 py-0.5 text-center"
+          class="w-14 rounded-md border border-neutral-700 bg-neutral-950 px-1 py-0.5 text-center text-sm text-neutral-100 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
           @change="redimensionar(Number($event.target.value), problema.n)"
         />
       </label>
@@ -64,11 +69,15 @@ defineExpose({ limpiar })
         Destinos
         <input
           type="number" min="1" max="12" :value="problema.n"
-          class="w-14 rounded border border-neutral-700 bg-neutral-900 px-1 py-0.5 text-center"
+          class="w-14 rounded-md border border-neutral-700 bg-neutral-950 px-1 py-0.5 text-center text-sm text-neutral-100 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
           @change="redimensionar(problema.m, Number($event.target.value))"
         />
       </label>
-      <button type="button" class="ml-auto rounded border border-neutral-700 px-2 py-0.5 text-xs hover:bg-neutral-800" @click="limpiar">
+      <button
+        type="button"
+        class="ml-auto rounded-lg border border-neutral-700 px-2.5 py-1 text-xs font-medium text-neutral-300 transition hover:border-neutral-600 hover:text-white"
+        @click="limpiar"
+      >
         Limpiar
       </button>
     </div>
@@ -81,7 +90,7 @@ defineExpose({ limpiar })
             <th v-for="(_destino, j) in problema.destinos" :key="`hd-${j}`" class="px-1 pb-1">
               <input
                 :value="problema.destinos[j]"
-                class="w-16 rounded border border-neutral-700 bg-neutral-900 px-1 py-0.5 text-center font-semibold"
+                :class="headerFieldClass"
                 @change="problema.destinos[j] = $event.target.value; emit('change')"
               />
             </th>
@@ -93,7 +102,7 @@ defineExpose({ limpiar })
             <td class="pr-1">
               <input
                 :value="problema.origenes[i]"
-                class="w-16 rounded border border-neutral-700 bg-neutral-900 px-1 py-0.5 text-center font-semibold"
+                :class="headerFieldClass"
                 @change="problema.origenes[i] = $event.target.value; emit('change')"
               />
             </td>
@@ -102,7 +111,7 @@ defineExpose({ limpiar })
                 :ref="(el) => registrarCelda(refClave(`c-${i}-${j}`), el)"
                 type="text" inputmode="decimal"
                 :value="problema.costos[i][j]"
-                class="w-16 rounded border border-neutral-700 bg-neutral-900 px-1 py-1 text-center"
+                :class="cellFieldClass"
                 @change="problema.costos[i][j] = Number($event.target.value) || 0; emit('change')"
                 @keydown.enter="mover(refClave(`c-${i}-${j}`), 1, $event)"
                 @keydown.down="mover(refClave(`c-${i}-${j}`), 1, $event)"
@@ -113,7 +122,7 @@ defineExpose({ limpiar })
               <input
                 type="text" inputmode="decimal"
                 :value="problema.oferta[i]"
-                class="w-16 rounded border border-neutral-700 bg-neutral-900 px-1 py-1 text-center"
+                :class="cellFieldClass"
                 @change="problema.oferta[i] = Number($event.target.value) || 0; emit('change')"
               />
             </td>
@@ -124,7 +133,7 @@ defineExpose({ limpiar })
               <input
                 type="text" inputmode="decimal"
                 :value="problema.demanda[j]"
-                class="w-16 rounded border border-neutral-700 bg-neutral-900 px-1 py-1 text-center"
+                :class="cellFieldClass"
                 @change="problema.demanda[j] = Number($event.target.value) || 0; emit('change')"
               />
             </td>

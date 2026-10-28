@@ -6,9 +6,9 @@ import numpy as np
 import webview
 from scipy import stats
 
-from . import analisis, modi, reporte
-from .opciones import Opciones
-from .problema import ProblemaTransporte
+from optilab.modi_method import analisis, modi, reporte
+from optilab.modi_method.opciones import Opciones
+from optilab.modi_method.problema import ProblemaTransporte
 
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 DIST_INDEX = FRONTEND_DIR / "dist" / "index.html"
@@ -49,7 +49,9 @@ def _iteracion_a_dict(it):
         "basicas": [list(c) for c in sorted(it.basicas)],
         "u": it.u.tolist(),
         "v": it.v.tolist(),
-        "delta": [[None if np.isnan(d) else d for d in fila] for fila in it.delta.tolist()],
+        "delta": [
+            [None if np.isnan(d) else d for d in fila] for fila in it.delta.tolist()
+        ],
         "costo": it.costo,
         "entrante": list(it.entrante) if it.entrante else None,
         "ciclo": [list(c) for c in it.ciclo],
@@ -104,7 +106,9 @@ class Api:
             o = Opciones(**opciones)
             r = modi.resolver(p, o)
             if not r.optimo:
-                return {"error": "la sensibilidad solo se calcula sobre una solución óptima"}
+                return {
+                    "error": "la sensibilidad solo se calcula sobre una solución óptima"
+                }
             filas = analisis.sensibilidad(r)
         except (ValueError, RuntimeError) as e:
             return {"error": str(e)}
@@ -122,20 +126,26 @@ class Api:
     def abrir_problema(self):
         ruta = _primera_ruta(
             _ventana().create_file_dialog(
-                webview.OPEN_DIALOG, file_types=("Problema JSON (*.json)", "Todos los archivos (*.*)")
+                webview.OPEN_DIALOG,
+                file_types=("Problema JSON (*.json)", "Todos los archivos (*.*)"),
             )
         )
         if not ruta:
             return None
         try:
-            return {"problema": ProblemaTransporte.desde_json(ruta).a_dict(), "ruta": ruta}
+            return {
+                "problema": ProblemaTransporte.desde_json(ruta).a_dict(),
+                "ruta": ruta,
+            }
         except (OSError, ValueError) as e:
             return {"error": str(e)}
 
     def guardar_problema(self, problema):
         ruta = _primera_ruta(
             _ventana().create_file_dialog(
-                webview.SAVE_DIALOG, save_filename="problema.json", file_types=("Problema JSON (*.json)",)
+                webview.SAVE_DIALOG,
+                save_filename="problema.json",
+                file_types=("Problema JSON (*.json)",),
             )
         )
         if not ruta:
@@ -149,7 +159,9 @@ class Api:
     def exportar_procedimiento(self, problema, opciones):
         ruta = _primera_ruta(
             _ventana().create_file_dialog(
-                webview.SAVE_DIALOG, save_filename="procedimiento.txt", file_types=("Texto (*.txt)", "JSON (*.json)")
+                webview.SAVE_DIALOG,
+                save_filename="procedimiento.txt",
+                file_types=("Texto (*.txt)", "JSON (*.json)"),
             )
         )
         if not ruta:
@@ -165,8 +177,14 @@ class Api:
 
 
 def main():
-    url = DEV_SERVER_URL if os.environ.get("OPTILAB_DEV") or not DIST_INDEX.exists() else str(DIST_INDEX)
-    webview.create_window("OptiLab", url, js_api=Api(), width=1280, height=800, min_size=(640, 480))
+    url = (
+        DEV_SERVER_URL
+        if os.environ.get("OPTILAB_DEV") or not DIST_INDEX.exists()
+        else str(DIST_INDEX)
+    )
+    webview.create_window(
+        "OptiLab", url, js_api=Api(), width=1280, height=800, min_size=(640, 480)
+    )
     # pywebview forces the Qt backend on any KDE session regardless of what's
     # installed; we only have GTK/WebKit bindings, so pin the GTK backend.
     webview.start(gui="gtk")

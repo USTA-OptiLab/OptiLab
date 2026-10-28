@@ -26,7 +26,10 @@ def _completar_base(asignacion, costos, eps):
         basicas.add((i, j))
 
     candidatas = sorted(
-        (costos[i, j], i, j) for i in range(m) for j in range(n) if (i, j) not in basicas
+        (costos[i, j], i, j)
+        for i in range(m)
+        for j in range(n)
+        if (i, j) not in basicas
     )
     for _, i, j in candidatas:
         if len(basicas) == m + n - 1:

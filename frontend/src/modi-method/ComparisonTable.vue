@@ -22,20 +22,19 @@ const hayMejor = computed(() => props.filas.some((f) => f.iteraciones !== menosI
     <p class="text-neutral-400">
       Mismo problema resuelto con cada solución inicial. En verde, la que necesitó menos iteraciones de MODI.
     </p>
-    <table class="w-full border-collapse text-left">
-      <thead>
-        <tr class="border-b border-neutral-700 text-neutral-300">
-          <th class="py-3 pr-5">Solución inicial</th>
-          <th class="py-3 pr-5">Costo inicial</th>
-          <th class="py-3 pr-5">Iteraciones MODI</th>
-          <th class="py-3">Costo final</th>
+    <table class="w-full text-left">
+      <thead class="text-[11px] uppercase tracking-wider text-neutral-500">
+        <tr>
+          <th class="py-3 pr-5 font-medium">Solución inicial</th>
+          <th class="py-3 pr-5 font-medium">Costo inicial</th>
+          <th class="py-3 pr-5 font-medium">Iteraciones MODI</th>
+          <th class="py-3 font-medium">Costo final</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody class="divide-y divide-neutral-800/80">
         <tr
           v-for="(f, k) in filas" :key="k"
-          class="border-b border-neutral-800"
-          :class="hayMejor && f.iteraciones === menosIteraciones ? 'bg-emerald-950/50 text-emerald-300' : k % 2 ? 'bg-neutral-900/40' : ''"
+          :class="hayMejor && f.iteraciones === menosIteraciones ? 'bg-emerald-500/10 text-emerald-200' : k % 2 ? 'bg-neutral-900/40' : ''"
         >
           <td class="py-3 pr-5">{{ NOMBRES[f.metodo] }}</td>
           <td class="py-3 pr-5">{{ num(f.costo_inicial, decimales) }}</td>

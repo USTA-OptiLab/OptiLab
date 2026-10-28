@@ -7,14 +7,14 @@ const props = defineProps({
 })
 
 const CLASES = {
-  ok: 'bg-emerald-950/60 text-emerald-300 border-emerald-800',
-  aviso: 'bg-amber-950/60 text-amber-300 border-amber-800',
-  info: 'bg-neutral-900 text-neutral-300 border-neutral-800',
+  ok: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-100',
+  aviso: 'border-amber-500/30 bg-amber-500/10 text-amber-100',
+  info: 'border-neutral-700 bg-neutral-900/50 text-neutral-300',
 }
 
 const clase = computed(() => CLASES[props.estilo] ?? CLASES.info)
 </script>
 
 <template>
-  <p class="mb-2 rounded border px-3 py-2 text-sm font-medium" :class="clase">{{ texto }}</p>
+  <p class="rounded-xl border px-3 py-2.5 text-sm font-medium" :class="clase">{{ texto }}</p>
 </template>

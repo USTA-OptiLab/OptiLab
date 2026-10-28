@@ -69,7 +69,9 @@ def calcular_potenciales(costos, basicas):
                     v[j] = costos[k, j] - u[k]
                     cola.append((j, True))
     if np.isnan(u).any() or np.isnan(v).any():
-        raise RuntimeError("la base no es conexa: no se pueden calcular los potenciales")
+        raise RuntimeError(
+            "la base no es conexa: no se pueden calcular los potenciales"
+        )
     return u, v
 
 
@@ -90,7 +92,9 @@ def encontrar_ciclo(entrante, basicas, m, n):
                 padre[b] = a
                 cola.append(b)
     if (m + je) not in padre:
-        raise RuntimeError("no existe ciclo: la base no es un árbol que conecte la celda entrante")
+        raise RuntimeError(
+            "no existe ciclo: la base no es un árbol que conecte la celda entrante"
+        )
 
     # Camino desde la columna de la celda entrante hasta su fila: tiene cantidad impar de aristas,
     # así que los signos alternan -, +, ..., - y con la entrante (+) el ciclo queda balanceado.
@@ -120,11 +124,15 @@ def _elegir_entrante(delta, criterio, eps):
     if criterio == "primero_negativo":
         i, j = np.argwhere(negativos)[0]
     else:
-        i, j = np.unravel_index(np.argmin(np.where(negativos, delta, np.inf)), delta.shape)
+        i, j = np.unravel_index(
+            np.argmin(np.where(negativos, delta, np.inf)), delta.shape
+        )
     return int(i), int(j)
 
 
-def resolver_modi(problema, asignacion_inicial, basicas_inicial, opciones=None, problema_original=None):
+def resolver_modi(
+    problema, asignacion_inicial, basicas_inicial, opciones=None, problema_original=None
+):
     """Optimiza desde una solución básica factible. `problema` debe estar balanceado."""
     opciones = opciones or Opciones()
     eps = opciones.epsilon
@@ -140,7 +148,15 @@ def resolver_modi(problema, asignacion_inicial, basicas_inicial, opciones=None, 
     for numero in range(1, opciones.max_iteraciones + 1):
         u, v = calcular_potenciales(c, basicas)
         delta = _costos_reducidos(c, basicas, u, v)
-        it = Iteracion(numero, x.copy(), sorted(basicas), u, v, delta, float((problema.costos * x).sum()))
+        it = Iteracion(
+            numero,
+            x.copy(),
+            sorted(basicas),
+            u,
+            v,
+            delta,
+            float((problema.costos * x).sum()),
+        )
         historial.append(it)
 
         entrante = _elegir_entrante(delta, opciones.criterio_entrada, eps)
@@ -160,7 +176,9 @@ def resolver_modi(problema, asignacion_inicial, basicas_inicial, opciones=None, 
         basicas.discard(sale)
         it.entrante, it.ciclo, it.theta, it.sale = entrante, ciclo, float(theta), sale
 
-    alternativos = optimo and bool((np.abs(historial[-1].delta[~np.isnan(historial[-1].delta)]) <= eps).any())
+    alternativos = optimo and bool(
+        (np.abs(historial[-1].delta[~np.isnan(historial[-1].delta)]) <= eps).any()
+    )
     return ResultadoMODI(
         problema_original=problema_original or problema,
         problema=problema,
@@ -182,5 +200,7 @@ def resolver(problema, opciones=None):
     opciones = opciones or Opciones()
     balanceado = problema.balancear()
     c = (-1.0 if opciones.modo == "maximizar" else 1.0) * balanceado.costos
-    x0, basicas0 = METODOS[opciones.metodo_inicial](c, balanceado.oferta, balanceado.demanda, opciones.epsilon)
+    x0, basicas0 = METODOS[opciones.metodo_inicial](
+        c, balanceado.oferta, balanceado.demanda, opciones.epsilon
+    )
     return resolver_modi(balanceado, x0, basicas0, opciones, problema_original=problema)

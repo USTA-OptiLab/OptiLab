@@ -52,15 +52,21 @@ class ProblemaTransporte:
         if dif > 0:  # sobra oferta: destino ficticio
             costos = np.hstack([self.costos, np.zeros((self.m, 1))])
             nuevo = ProblemaTransporte(
-                costos, self.oferta, np.append(self.demanda, dif),
-                self.origenes, self.destinos + [ETIQUETA_FICTICIO],
+                costos,
+                self.oferta,
+                np.append(self.demanda, dif),
+                self.origenes,
+                self.destinos + [ETIQUETA_FICTICIO],
             )
             nuevo.columna_ficticia = self.n
         else:  # sobra demanda: origen ficticio
             costos = np.vstack([self.costos, np.zeros((1, self.n))])
             nuevo = ProblemaTransporte(
-                costos, np.append(self.oferta, -dif), self.demanda,
-                self.origenes + [ETIQUETA_FICTICIO], self.destinos,
+                costos,
+                np.append(self.oferta, -dif),
+                self.demanda,
+                self.origenes + [ETIQUETA_FICTICIO],
+                self.destinos,
             )
             nuevo.fila_ficticia = self.m
         return nuevo
@@ -78,8 +84,11 @@ class ProblemaTransporte:
     def desde_dict(cls, datos: dict) -> "ProblemaTransporte":
         try:
             return cls(
-                datos["costos"], datos["oferta"], datos["demanda"],
-                datos.get("origenes"), datos.get("destinos"),
+                datos["costos"],
+                datos["oferta"],
+                datos["demanda"],
+                datos.get("origenes"),
+                datos.get("destinos"),
             )
         except KeyError as e:
             raise ValueError(f"falta el campo {e} en el problema") from None
@@ -89,4 +98,6 @@ class ProblemaTransporte:
         return cls.desde_dict(json.loads(Path(ruta).read_text(encoding="utf-8")))
 
     def guardar_json(self, ruta) -> None:
-        Path(ruta).write_text(json.dumps(self.a_dict(), indent=2, ensure_ascii=False), encoding="utf-8")
+        Path(ruta).write_text(
+            json.dumps(self.a_dict(), indent=2, ensure_ascii=False), encoding="utf-8"
+        )

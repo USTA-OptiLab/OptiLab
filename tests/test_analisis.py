@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from optilab import Opciones, ProblemaTransporte, reporte, resolver
-from optilab.analisis import comparar_metodos, sensibilidad, titulo_estado
+from optilab.modi_method import Opciones, ProblemaTransporte, reporte, resolver
+from optilab.modi_method.analisis import comparar_metodos, sensibilidad, titulo_estado
 
 CLASICO = {
     "costos": [[19, 30, 50, 10], [70, 30, 40, 60], [40, 8, 70, 20]],
@@ -30,7 +30,11 @@ def test_sensibilidad_la_solucion_sigue_siendo_optima_dentro_del_rango(modo):
     rng = np.random.default_rng(11)
     for _ in range(15):
         m, n = rng.integers(2, 5, size=2)
-        p = ProblemaTransporte(rng.integers(1, 30, size=(m, n)), rng.integers(1, 20, size=m), rng.integers(1, 20, size=n))
+        p = ProblemaTransporte(
+            rng.integers(1, 30, size=(m, n)),
+            rng.integers(1, 20, size=m),
+            rng.integers(1, 20, size=n),
+        )
         r = resolver(p, Opciones(modo=modo))
         x = r.asignacion[: p.m, : p.n]
         for f in sensibilidad(r):
@@ -38,7 +42,9 @@ def test_sensibilidad_la_solucion_sigue_siendo_optima_dentro_del_rango(modo):
             for valor in _puntos_internos(f):
                 q = _con_costo(p, i, j, valor)
                 esperado = resolver(q, Opciones(modo=modo)).costo
-                assert float((q.costos * x).sum()) == pytest.approx(esperado, abs=1e-6), (f, valor)
+                assert float((q.costos * x).sum()) == pytest.approx(
+                    esperado, abs=1e-6
+                ), (f, valor)
 
 
 def test_sensibilidad_fuera_del_rango_la_solucion_mejora():
@@ -63,7 +69,10 @@ def test_sensibilidad_valores_conocidos():
 
 
 def test_sensibilidad_requiere_optimo():
-    r = resolver(ProblemaTransporte(**CLASICO), Opciones(metodo_inicial="noroeste", max_iteraciones=1))
+    r = resolver(
+        ProblemaTransporte(**CLASICO),
+        Opciones(metodo_inicial="noroeste", max_iteraciones=1),
+    )
     with pytest.raises(ValueError):
         sensibilidad(r)
 
@@ -82,11 +91,18 @@ def test_comparar_metodos():
 
 
 def test_bloques_de_texto():
-    r = resolver(ProblemaTransporte(**CLASICO), Opciones(mostrar_sensibilidad=True, mostrar_procedimiento=False))
+    r = resolver(
+        ProblemaTransporte(**CLASICO),
+        Opciones(mostrar_sensibilidad=True, mostrar_procedimiento=False),
+    )
     t = reporte.formatear(r)
     assert "ANÁLISIS DE SENSIBILIDAD" in t and "RESULTADO FINAL" in t
-    assert "SENSIBILIDAD" not in reporte.formatear(resolver(ProblemaTransporte(**CLASICO)))
-    assert "mismo óptimo (743)" in reporte.bloque_comparacion(comparar_metodos(ProblemaTransporte(**CLASICO)))
+    assert "SENSIBILIDAD" not in reporte.formatear(
+        resolver(ProblemaTransporte(**CLASICO))
+    )
+    assert "mismo óptimo (743)" in reporte.bloque_comparacion(
+        comparar_metodos(ProblemaTransporte(**CLASICO))
+    )
 
 
 def test_titulos_de_estado():
