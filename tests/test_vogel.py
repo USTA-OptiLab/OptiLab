@@ -102,6 +102,9 @@ def test_single_cell():
         ([[1, 2], [3, 4]], [5], [3, 2]),
         ([[1, -2]], [5], [2, 3]),
         ([[1, 2]], [-5], [2, 3]),
+        ([[1, 2]], [float("nan")], [1, 1]),
+        ([[1, 2]], [float("inf")], [1, 1]),
+        ([[float("nan"), 2]], [2], [1, 1]),
     ],
 )
 def test_invalid_input_raises(costs, supply, demand):
@@ -138,3 +141,19 @@ def test_menu_maximize_option(monkeypatch, capsys):
     out = capsys.readouterr().out
     assert "Highest profit in that" in out
     assert "Total profit:" in out
+
+
+def test_menu_rejects_nan_and_exits_on_eof(monkeypatch, capsys):
+    answers = iter(["2", "1", "1", "2", "nan", "1 1", "1 2"])
+
+    def fake_input(_=""):
+        try:
+            return next(answers)
+        except StopIteration:
+            raise EOFError from None
+
+    monkeypatch.setattr("builtins.input", fake_input)
+    main()
+    out = capsys.readouterr().out
+    assert "finite numbers >= 0" in out
+    assert "nan" not in out.replace("finite", "")
