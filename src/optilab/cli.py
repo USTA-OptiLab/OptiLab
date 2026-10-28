@@ -3,11 +3,11 @@
 import argparse
 import sys
 
-from . import reporte
-from .analisis import comparar_metodos
-from .modi import resolver
-from .opciones import CRITERIOS_ENTRADA, METODOS_INICIALES, MODOS, Opciones
-from .problema import ProblemaTransporte
+from .modi_method import reporte
+from .modi_method.analisis import comparar_metodos
+from .modi_method.modi import resolver
+from .modi_method.opciones import CRITERIOS_ENTRADA, METODOS_INICIALES, MODOS, Opciones
+from .modi_method.problema import ProblemaTransporte
 
 
 def _leer_fila(prompt, cantidad):
@@ -25,30 +25,82 @@ def _leer_fila(prompt, cantidad):
 def problema_interactivo():
     m = int(input("Cantidad de orígenes: "))
     n = int(input("Cantidad de destinos: "))
-    costos = [_leer_fila(f"Costos del origen {i + 1} ({n} valores): ", n) for i in range(m)]
+    costos = [
+        _leer_fila(f"Costos del origen {i + 1} ({n} valores): ", n) for i in range(m)
+    ]
     oferta = _leer_fila(f"Oferta ({m} valores): ", m)
     demanda = _leer_fila(f"Demanda ({n} valores): ", n)
     return ProblemaTransporte(costos, oferta, demanda)
 
 
 def crear_parser():
-    p = argparse.ArgumentParser(prog="optilab.cli", description="Método MODI para el problema de transporte.")
-    p.add_argument("archivo", nargs="?", help="problema en JSON (costos, oferta, demanda); si falta, se piden por consola")
-    p.add_argument("--inicial", choices=METODOS_INICIALES, default="vogel", help="método de solución inicial")
+    p = argparse.ArgumentParser(
+        prog="optilab.cli", description="Método MODI para el problema de transporte."
+    )
+    p.add_argument(
+        "archivo",
+        nargs="?",
+        help="problema en JSON (costos, oferta, demanda); si falta, se piden por consola",
+    )
+    p.add_argument(
+        "--inicial",
+        choices=METODOS_INICIALES,
+        default="vogel",
+        help="método de solución inicial",
+    )
     p.add_argument("--modo", choices=MODOS, default="minimizar")
-    p.add_argument("--criterio", choices=CRITERIOS_ENTRADA, default="mas_negativo", help="regla de la celda entrante")
-    p.add_argument("--sin-procedimiento", action="store_true", help="mostrar solo el resultado final")
-    p.add_argument("--no-inicial", action="store_true", help="ocultar la solución inicial")
-    p.add_argument("--no-potenciales", action="store_true", help="ocultar el cálculo de u y v")
+    p.add_argument(
+        "--criterio",
+        choices=CRITERIOS_ENTRADA,
+        default="mas_negativo",
+        help="regla de la celda entrante",
+    )
+    p.add_argument(
+        "--sin-procedimiento",
+        action="store_true",
+        help="mostrar solo el resultado final",
+    )
+    p.add_argument(
+        "--no-inicial", action="store_true", help="ocultar la solución inicial"
+    )
+    p.add_argument(
+        "--no-potenciales", action="store_true", help="ocultar el cálculo de u y v"
+    )
     p.add_argument("--no-costos-reducidos", action="store_true", help="ocultar los Δ")
-    p.add_argument("--no-ciclo", action="store_true", help="ocultar ciclo, θ y celda que sale")
-    p.add_argument("--no-asignacion", action="store_true", help="ocultar la tabla de asignación de cada iteración")
-    p.add_argument("--sensibilidad", action="store_true", help="agregar el análisis de sensibilidad de costos")
-    p.add_argument("--comparar", action="store_true", help="comparar las tres soluciones iniciales")
-    p.add_argument("--paso-a-paso", action="store_true", help="pausar tras cada bloque (Enter para continuar)")
-    p.add_argument("--max", type=int, default=100, dest="max_iteraciones", help="máximo de iteraciones")
+    p.add_argument(
+        "--no-ciclo", action="store_true", help="ocultar ciclo, θ y celda que sale"
+    )
+    p.add_argument(
+        "--no-asignacion",
+        action="store_true",
+        help="ocultar la tabla de asignación de cada iteración",
+    )
+    p.add_argument(
+        "--sensibilidad",
+        action="store_true",
+        help="agregar el análisis de sensibilidad de costos",
+    )
+    p.add_argument(
+        "--comparar", action="store_true", help="comparar las tres soluciones iniciales"
+    )
+    p.add_argument(
+        "--paso-a-paso",
+        action="store_true",
+        help="pausar tras cada bloque (Enter para continuar)",
+    )
+    p.add_argument(
+        "--max",
+        type=int,
+        default=100,
+        dest="max_iteraciones",
+        help="máximo de iteraciones",
+    )
     p.add_argument("--decimales", type=int, default=2)
-    p.add_argument("--exportar", metavar="RUTA", help="guardar el procedimiento completo (.txt o .json)")
+    p.add_argument(
+        "--exportar",
+        metavar="RUTA",
+        help="guardar el procedimiento completo (.txt o .json)",
+    )
     return p
 
 
@@ -75,7 +127,11 @@ def main(argv=None):
     args = crear_parser().parse_args(argv)
     try:
         opciones = opciones_desde_args(args)
-        problema = ProblemaTransporte.desde_json(args.archivo) if args.archivo else problema_interactivo()
+        problema = (
+            ProblemaTransporte.desde_json(args.archivo)
+            if args.archivo
+            else problema_interactivo()
+        )
         resultado = resolver(problema, opciones)
         comparacion = comparar_metodos(problema, opciones) if args.comparar else None
     except (ValueError, OSError, RuntimeError) as e:
@@ -95,7 +151,10 @@ def main(argv=None):
                 opciones.paso_a_paso = False
 
     if comparacion:
-        print(reporte.bloque_comparacion(comparacion, opciones.modo, opciones.decimales) + "\n")
+        print(
+            reporte.bloque_comparacion(comparacion, opciones.modo, opciones.decimales)
+            + "\n"
+        )
 
     if opciones.exportar:
         reporte.exportar(resultado, opciones.exportar)

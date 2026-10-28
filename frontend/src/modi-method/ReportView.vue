@@ -47,14 +47,22 @@ defineExpose({ resolver: () => (paso.value = 0) })
 <template>
   <div class="flex h-full flex-col">
     <pre
-      class="flex-1 overflow-auto rounded border border-neutral-800 bg-neutral-950 p-3 font-mono leading-5"
+      class="flex-1 overflow-auto rounded-xl border border-neutral-800 bg-neutral-950/70 p-3 font-mono leading-5"
       :style="{ fontSize: `${tamanoTexto}px` }"
     ><span
         v-for="(l, k) in lineas" :key="k" :class="l.clase"
       >{{ l.texto }}<br /></span></pre>
-    <div v-if="pasoAPaso" class="mt-2 flex items-center gap-2 text-sm">
-      <button type="button" class="rounded border border-neutral-700 px-2 py-1 disabled:opacity-30" :disabled="paso === 0" @click="ir(-1)">◀ Anterior</button>
-      <button type="button" class="rounded border border-neutral-700 px-2 py-1 disabled:opacity-30" :disabled="paso >= bloques.length - 1" @click="ir(1)">Siguiente ▶</button>
+    <div v-if="pasoAPaso" class="mt-3 flex items-center gap-2 text-sm">
+      <button
+        type="button"
+        class="rounded-lg border border-neutral-700 px-3 py-1.5 text-xs font-medium text-neutral-300 transition hover:border-neutral-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-neutral-700 disabled:hover:text-neutral-300"
+        :disabled="paso === 0" @click="ir(-1)"
+      >◀ Anterior</button>
+      <button
+        type="button"
+        class="rounded-lg border border-neutral-700 px-3 py-1.5 text-xs font-medium text-neutral-300 transition hover:border-neutral-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-neutral-700 disabled:hover:text-neutral-300"
+        :disabled="paso >= bloques.length - 1" @click="ir(1)"
+      >Siguiente ▶</button>
       <span class="text-neutral-400">Paso {{ paso + 1 }} de {{ bloques.length }}</span>
     </div>
   </div>

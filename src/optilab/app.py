@@ -116,6 +116,7 @@ class Api:
             return {"status": "ok", **primal_dual.solve_request(payload)}
         except (TypeError, ValueError, ZeroDivisionError) as exc:
             return {"status": "error", "message": str(exc)}
+
     def ejemplo(self):
         try:
             return {"problema": ProblemaTransporte.desde_json(EJEMPLO).a_dict()}

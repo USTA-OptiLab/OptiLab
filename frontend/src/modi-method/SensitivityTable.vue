@@ -16,21 +16,20 @@ function num(x, dec) {
     <p class="text-neutral-400">
       Rango en el que puede variar el costo de cada ruta (los demás fijos) sin cambiar la solución óptima.
     </p>
-    <p v-if="error" class="text-rose-400">{{ error }}</p>
-    <table v-else class="w-full border-collapse text-left">
-      <thead>
-        <tr class="border-b border-neutral-700 text-neutral-300">
-          <th class="py-3 pr-5">Ruta</th>
-          <th class="py-3 pr-5">Tipo</th>
-          <th class="py-3 pr-5">Costo</th>
-          <th class="py-3">Rango del costo</th>
+    <p v-if="error" class="rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-2 text-sm text-rose-100">{{ error }}</p>
+    <table v-else class="w-full text-left">
+      <thead class="text-[11px] uppercase tracking-wider text-neutral-500">
+        <tr>
+          <th class="py-3 pr-5 font-medium">Ruta</th>
+          <th class="py-3 pr-5 font-medium">Tipo</th>
+          <th class="py-3 pr-5 font-medium">Costo</th>
+          <th class="py-3 font-medium">Rango del costo</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody class="divide-y divide-neutral-800/80">
         <tr
           v-for="(f, k) in filas" :key="k"
-          class="border-b border-neutral-800"
-          :class="f.basica ? 'bg-indigo-950/40' : k % 2 ? 'bg-neutral-900/40' : ''"
+          :class="f.basica ? 'bg-indigo-500/10 text-indigo-100' : k % 2 ? 'bg-neutral-900/40' : ''"
         >
           <td class="py-3 pr-5">{{ f.origen }} → {{ f.destino }}</td>
           <td class="py-3 pr-5">{{ f.basica ? 'básica' : 'no básica' }}</td>

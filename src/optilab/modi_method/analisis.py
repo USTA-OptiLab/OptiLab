@@ -79,12 +79,20 @@ def sensibilidad(r: ResultadoMODI) -> list[RangoCosto]:
                         elif e < 0:
                             dmax = min(dmax, delta[k, l])
                 # d es el cambio del costo de trabajo; al maximizar es el opuesto del cambio real
-                lo, hi = (costo - dmax, costo - dmin) if maximizar else (costo + dmin, costo + dmax)
-                filas.append(RangoCosto(po.origenes[i], po.destinos[j], True, costo, lo, hi))
+                lo, hi = (
+                    (costo - dmax, costo - dmin)
+                    if maximizar
+                    else (costo + dmin, costo + dmax)
+                )
+                filas.append(
+                    RangoCosto(po.origenes[i], po.destinos[j], True, costo, lo, hi)
+                )
             else:
                 d = float(delta[i, j])
                 lo, hi = (-INF, costo + d) if maximizar else (costo - d, INF)
-                filas.append(RangoCosto(po.origenes[i], po.destinos[j], False, costo, lo, hi))
+                filas.append(
+                    RangoCosto(po.origenes[i], po.destinos[j], False, costo, lo, hi)
+                )
     return filas
 
 
@@ -97,14 +105,18 @@ class FilaComparacion:
     optimo: bool
 
 
-def comparar_metodos(problema: ProblemaTransporte, opciones: Opciones | None = None) -> list[FilaComparacion]:
+def comparar_metodos(
+    problema: ProblemaTransporte, opciones: Opciones | None = None
+) -> list[FilaComparacion]:
     """Resuelve el problema con cada solución inicial y resume el esfuerzo de MODI en cada caso."""
     opciones = opciones or Opciones()
     filas = []
     for metodo in METODOS_INICIALES:
         r = resolver(problema, replace(opciones, metodo_inicial=metodo))
         mejoras = sum(1 for it in r.historial if it.entrante is not None)
-        filas.append(FilaComparacion(metodo, r.costo_inicial, mejoras, r.costo, r.optimo))
+        filas.append(
+            FilaComparacion(metodo, r.costo_inicial, mejoras, r.costo, r.optimo)
+        )
     return filas
 
 
