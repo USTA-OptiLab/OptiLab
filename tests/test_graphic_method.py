@@ -1,7 +1,7 @@
 import pytest
 
+from optilab.app import Api
 from optilab.graphic_method import solve_graphical
-from optilab.graphic_method.api import GraphicMethodApi
 
 
 def test_maximization_finds_optimal_vertex():
@@ -291,7 +291,7 @@ def test_validation_errors(payload, message):
 
 
 def test_api_returns_a_readable_error():
-    response = GraphicMethodApi().solve_graphical({})
+    response = Api().solve_graphical({})
 
     assert response["ok"] is False
     assert "error" in response
