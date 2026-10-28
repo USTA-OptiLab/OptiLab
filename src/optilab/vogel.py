@@ -97,10 +97,59 @@ def _print_result(title, result):
     print(title)
     for row in result["allocation"]:
         print("  " + "  ".join(f"{q:g}".rjust(6) for q in row))
-    print(f"  total cost: {result['total_cost']:g}  dummy: {result['dummy']}\n")
+    print(f"  total cost: {result['total_cost']:g}  dummy: {result['dummy']}")
+    for n, step in enumerate(result["steps"], 1):
+        i, j = step["cell"]
+        rows = {r + 1: p for r, p in step["row_penalties"].items()}
+        cols = {c + 1: p for c, p in step["col_penalties"].items()}
+        print(
+            f"  step {n}: row penalties {rows}, col penalties {cols} -> "
+            f"cell ({i + 1}, {j + 1}) gets {step['quantity']:g}"
+        )
+    print()
 
 
-if __name__ == "__main__":
+def _ask_number(prompt, kind=float, minimum=0):
+    while True:
+        try:
+            value = kind(input(prompt).strip())
+        except ValueError:
+            print("  invalid number, try again")
+            continue
+        if value < minimum:
+            print(f"  must be >= {minimum:g}")
+            continue
+        return value
+
+
+def _ask_list(prompt, length):
+    while True:
+        try:
+            values = [float(x) for x in input(prompt).replace(",", " ").split()]
+        except ValueError:
+            print("  invalid number, try again")
+            continue
+        if len(values) != length:
+            print(f"  expected {length} values, got {len(values)}")
+        elif any(v < 0 for v in values):
+            print("  values must be >= 0")
+        else:
+            return values
+
+
+def _solve_user_problem():
+    n_rows = _ask_number("Number of sources (rows): ", int, 1)
+    n_cols = _ask_number("Number of destinations (columns): ", int, 1)
+    supply = _ask_list(f"Supply ({n_rows} values): ", n_rows)
+    demand = _ask_list(f"Demand ({n_cols} values): ", n_cols)
+    costs = [
+        _ask_list(f"Costs of source {i + 1} ({n_cols} values): ", n_cols)
+        for i in range(n_rows)
+    ]
+    _print_result("Solution", solve_vogel(costs, supply, demand))
+
+
+def _run_examples():
     _print_result(
         "Balanced",
         solve_vogel(
@@ -117,3 +166,24 @@ if __name__ == "__main__":
         "Degenerate",
         solve_vogel([[2, 3], [4, 1]], [10, 10], [10, 10]),
     )
+
+
+def main():
+    while True:
+        print("Vogel approximation method")
+        print("  1. Examples")
+        print("  2. Solve an exercise")
+        print("  0. Exit")
+        choice = input("Option: ").strip()
+        if choice == "1":
+            _run_examples()
+        elif choice == "2":
+            _solve_user_problem()
+        elif choice == "0":
+            return
+        else:
+            print("  invalid option\n")
+
+
+if __name__ == "__main__":
+    main()
