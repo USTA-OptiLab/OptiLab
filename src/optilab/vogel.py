@@ -1,20 +1,26 @@
 import math
 
 
-def _penalty(costs):
-    if len(costs) == 1:
-        return costs[0]
-    low = sorted(costs)
-    return low[1] - low[0]
+def _penalty(values, key):
+    if len(values) == 1:
+        return values[0]
+    best = sorted(values, key=key)
+    return abs(best[1] - best[0])
 
 
-def solve_vogel(costs, supply, demand):
+def solve_vogel(costs, supply, demand, maximize=False):
     """Solve a transportation problem with Vogel's approximation method.
+
+    By default it minimizes cost. With `maximize=True` the values are
+    profits: penalties use the two highest values and the highest value in
+    the chosen line is picked first.
 
     Unbalanced problems get a dummy column (excess supply) or dummy row
     (excess demand) with zero cost, so `allocation` may be one row/column
     larger than `costs`; `dummy` says which one ("row", "column" or None).
     """
+    # Smaller key = better value, so both objectives share the same code.
+    key = (lambda v: -v) if maximize else (lambda v: v)
     costs = [[float(c) for c in row] for row in costs]
     supply = [float(s) for s in supply]
     demand = [float(d) for d in demand]
@@ -46,24 +52,26 @@ def solve_vogel(costs, supply, demand):
     steps = []
 
     while rows and cols:
-        row_pen = {i: _penalty([costs[i][j] for j in cols]) for i in rows}
-        col_pen = {j: _penalty([costs[i][j] for i in rows]) for j in cols}
+        row_pen = {i: _penalty([costs[i][j] for j in cols], key) for i in rows}
+        col_pen = {j: _penalty([costs[i][j] for i in rows], key) for j in cols}
 
         # Candidates ordered by penalty (high), line min cost (low), rows
         # before columns, then index, so ties resolve deterministically.
         candidates = [
-            (-p, min(costs[i][j] for j in cols), 0, i) for i, p in row_pen.items()
-        ] + [(-p, min(costs[i][j] for i in rows), 1, j) for j, p in col_pen.items()]
+            (-p, min(key(costs[i][j]) for j in cols), 0, i) for i, p in row_pen.items()
+        ] + [
+            (-p, min(key(costs[i][j]) for i in rows), 1, j) for j, p in col_pen.items()
+        ]
         best = min(candidates)
         _, _, is_col, idx = best
         tied = sum(1 for c in candidates if c[0] == best[0])
 
         if is_col:
-            i = min(rows, key=lambda r: (costs[r][idx], r))
+            i = min(rows, key=lambda r: (key(costs[r][idx]), r))
             j = idx
         else:
             i = idx
-            j = min(cols, key=lambda c: (costs[idx][c], c))
+            j = min(cols, key=lambda c: (key(costs[idx][c]), c))
 
         step = {
             "active_rows": sorted(rows),
@@ -110,6 +118,7 @@ def solve_vogel(costs, supply, demand):
         "total_cost": total_cost,
         "steps": steps,
         "dummy": dummy,
+        "maximize": maximize,
         "costs": costs,
         "supply": start_supply,
         "demand": start_demand,
@@ -156,16 +165,17 @@ def _print_step(n, step, result, row_names, col_names):
     kind, idx = step["line"]
     names = row_names if kind == "row" else col_names
     i, j = step["cell"]
+    best, value = ("highest", "profit") if result["maximize"] else ("lowest", "cost")
     line = f"    Highest penalty: {step['max_penalty']:g} ({kind} {names[idx]})."
     if step["tied_lines"] > 1:
         line += (
-            f" Tie among {step['tied_lines']} lines: chose the one with the lowest"
-            " cost, then rows before columns, then the first index."
+            f" Tie among {step['tied_lines']} lines: chose the one with the {best}"
+            f" {value}, then rows before columns, then the first index."
         )
     print(line)
     print(
-        f"    Lowest cost in that {kind}: cell ({row_names[i]}, {col_names[j]})"
-        f" = {result['costs'][i][j]:g}"
+        f"    {best.capitalize()} {value} in that {kind}:"
+        f" cell ({row_names[i]}, {col_names[j]}) = {result['costs'][i][j]:g}"
     )
     print(
         f"    Assign min({step['supply_before'][i]:g}, {step['demand_before'][j]:g})"
@@ -190,7 +200,7 @@ def _print_result(title, result):
     if result["dummy"]:
         total_s, total_d = sum(result["supply"]), sum(result["demand"])
         print(
-            f"  Unbalanced problem: added a dummy {result['dummy']} with zero costs"
+            f"  Unbalanced problem: added a dummy {result['dummy']} with all values 0"
             f" (supply and demand now both {max(total_s, total_d):g})."
         )
     print()
@@ -200,7 +210,8 @@ def _print_result(title, result):
     print("    " + "".ljust(8) + "".join(c.rjust(8) for c in col_names))
     for name, row in zip(row_names, result["allocation"]):
         print("    " + name.ljust(8) + "".join(f"{q:g}".rjust(8) for q in row))
-    print(f"  Total cost: {result['total_cost']:g}\n")
+    label = "profit" if result["maximize"] else "cost"
+    print(f"  Total {label}: {result['total_cost']:g}\n")
 
 
 def _ask_number(prompt, kind=float, minimum=0):
@@ -231,16 +242,28 @@ def _ask_list(prompt, length):
             return values
 
 
+def _ask_objective():
+    while True:
+        print("  1. Minimize (costs)")
+        print("  2. Maximize (profits)")
+        choice = input("Objective: ").strip()
+        if choice in ("1", "2"):
+            return choice == "2"
+        print("  invalid option\n")
+
+
 def _solve_user_problem():
+    maximize = _ask_objective()
+    word = "Profits" if maximize else "Costs"
     n_rows = _ask_number("Number of sources (rows): ", int, 1)
     n_cols = _ask_number("Number of destinations (columns): ", int, 1)
     supply = _ask_list(f"Supply ({n_rows} values): ", n_rows)
     demand = _ask_list(f"Demand ({n_cols} values): ", n_cols)
     costs = [
-        _ask_list(f"Costs of source {i + 1} ({n_cols} values): ", n_cols)
+        _ask_list(f"{word} of source {i + 1} ({n_cols} values): ", n_cols)
         for i in range(n_rows)
     ]
-    _print_result("Solution", solve_vogel(costs, supply, demand))
+    _print_result("Solution", solve_vogel(costs, supply, demand, maximize))
 
 
 def _run_examples():
@@ -259,6 +282,15 @@ def _run_examples():
     _print_result(
         "Degenerate",
         solve_vogel([[2, 3], [4, 1]], [10, 10], [10, 10]),
+    )
+    _print_result(
+        "Maximization (profits)",
+        solve_vogel(
+            [[19, 30, 50, 10], [70, 30, 40, 60], [40, 8, 70, 20]],
+            [7, 9, 18],
+            [5, 8, 7, 14],
+            maximize=True,
+        ),
     )
 
 
