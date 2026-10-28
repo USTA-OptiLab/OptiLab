@@ -72,7 +72,7 @@ function esperarApi() {
 
 async function cargarEjemplo() {
   const r = await api.ejemplo()
-  if (r?.problema) problema.value = r.problema
+  if (r?.problema) problema.value = conDimensiones(r.problema)
 }
 
 function cambiarZoom(delta) {
@@ -122,6 +122,11 @@ function clonarPlano(x) {
   return JSON.parse(JSON.stringify(x))
 }
 
+// El backend no envía m ni n; los componentes los usan para dimensionar tablas y diagramas.
+function conDimensiones(p) {
+  return { ...p, m: p.origenes.length, n: p.destinos.length }
+}
+
 const iteracionActual = computed(() => resultado.value?.historial[vistaIteracion.value] ?? null)
 
 async function resolverProblema() {
@@ -132,7 +137,7 @@ async function resolverProblema() {
     resultado.value = null
     return
   }
-  resultado.value = r
+  resultado.value = { ...r, problema: conDimensiones(r.problema) }
   vistaIteracion.value = 0
   sensibilidad.value = null
   comparacion.value = null
@@ -157,7 +162,7 @@ async function abrir() {
     estado.value = `No se pudo abrir: ${r.error}`
     return
   }
-  problema.value = r.problema
+  problema.value = conDimensiones(r.problema)
   resultado.value = null
   estado.value = `Abierto: ${r.ruta}`
 }
@@ -188,15 +193,15 @@ const PESTANAS = [
 </script>
 
 <template>
-  <div class="flex h-screen flex-col gap-3 bg-neutral-950 p-4 text-neutral-100">
-    <div class="flex items-baseline justify-between">
+  <div class="flex min-h-screen flex-col gap-3 bg-neutral-950 p-4 text-neutral-100 lg:h-screen">
+    <div class="flex flex-wrap items-baseline justify-between gap-x-4">
       <h1 class="text-xl font-semibold">OptiLab — Método MODI</h1>
       <p class="text-xs text-neutral-500">Ctrl+Enter resolver · Ctrl+O abrir · Ctrl+S guardar · Ctrl +/− tamaño del texto</p>
     </div>
 
-    <div class="grid flex-1 grid-cols-[320px_1fr] gap-4 overflow-hidden">
-      <div class="flex flex-col overflow-hidden">
-        <div class="flex-1 space-y-4 overflow-y-auto pr-1">
+    <div class="grid flex-1 grid-cols-1 gap-4 lg:grid-cols-[fit-content(540px)_1fr] lg:overflow-hidden">
+      <div class="flex flex-col lg:overflow-hidden">
+        <div class="flex-1 space-y-4 pr-1 lg:overflow-y-auto">
           <section class="space-y-2 rounded border border-neutral-800 p-3">
             <h2 class="text-sm font-semibold text-neutral-300">Problema</h2>
             <ProblemGrid ref="grilla" v-model="problema" @change="marcarObsoleto" />
@@ -227,7 +232,7 @@ const PESTANAS = [
         </button>
       </div>
 
-      <div class="flex flex-col overflow-hidden">
+      <div class="flex min-h-[70vh] flex-col lg:min-h-0 lg:overflow-hidden">
         <div class="mb-2 flex items-center gap-3 text-sm">
           <label v-if="resultado" class="flex items-center gap-2">
             Vista:
@@ -242,7 +247,7 @@ const PESTANAS = [
 
         <ResultBanner :estilo="bannerEstilo" :texto="bannerTexto" />
 
-        <div class="mb-2 flex gap-1 border-b border-neutral-800 text-sm">
+        <div class="mb-2 flex flex-wrap gap-1 border-b border-neutral-800 text-sm">
           <button
             v-for="p in PESTANAS" :key="p.id" type="button"
             class="px-3 py-1.5"

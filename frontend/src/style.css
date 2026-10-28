@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+/* App is dark-only: makes native selects, checkboxes and scrollbars match */
+:root {
+  color-scheme: dark;
+}

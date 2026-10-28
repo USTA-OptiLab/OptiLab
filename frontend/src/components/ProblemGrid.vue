@@ -51,7 +51,7 @@ defineExpose({ limpiar })
 
 <template>
   <div class="space-y-2">
-    <div class="flex items-center gap-3 text-sm">
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
       <label class="flex items-center gap-1">
         Orígenes
         <input
@@ -77,11 +77,11 @@ defineExpose({ limpiar })
       <table class="border-collapse text-xs">
         <thead>
           <tr>
-            <th class="w-20"></th>
+            <th class="w-16"></th>
             <th v-for="(_destino, j) in problema.destinos" :key="`hd-${j}`" class="px-1 pb-1">
               <input
                 :value="problema.destinos[j]"
-                class="w-20 rounded border border-neutral-700 bg-neutral-900 px-1 py-0.5 text-center font-semibold"
+                class="w-16 rounded border border-neutral-700 bg-neutral-900 px-1 py-0.5 text-center font-semibold"
                 @change="problema.destinos[j] = $event.target.value; emit('change')"
               />
             </th>
@@ -93,7 +93,7 @@ defineExpose({ limpiar })
             <td class="pr-1">
               <input
                 :value="problema.origenes[i]"
-                class="w-20 rounded border border-neutral-700 bg-neutral-900 px-1 py-0.5 text-center font-semibold"
+                class="w-16 rounded border border-neutral-700 bg-neutral-900 px-1 py-0.5 text-center font-semibold"
                 @change="problema.origenes[i] = $event.target.value; emit('change')"
               />
             </td>
@@ -102,7 +102,7 @@ defineExpose({ limpiar })
                 :ref="(el) => registrarCelda(refClave(`c-${i}-${j}`), el)"
                 type="text" inputmode="decimal"
                 :value="problema.costos[i][j]"
-                class="w-20 rounded border border-neutral-700 bg-neutral-900 px-1 py-1 text-center"
+                class="w-16 rounded border border-neutral-700 bg-neutral-900 px-1 py-1 text-center"
                 @change="problema.costos[i][j] = Number($event.target.value) || 0; emit('change')"
                 @keydown.enter="mover(refClave(`c-${i}-${j}`), 1, $event)"
                 @keydown.down="mover(refClave(`c-${i}-${j}`), 1, $event)"
@@ -113,7 +113,7 @@ defineExpose({ limpiar })
               <input
                 type="text" inputmode="decimal"
                 :value="problema.oferta[i]"
-                class="w-20 rounded border border-neutral-700 bg-neutral-900 px-1 py-1 text-center"
+                class="w-16 rounded border border-neutral-700 bg-neutral-900 px-1 py-1 text-center"
                 @change="problema.oferta[i] = Number($event.target.value) || 0; emit('change')"
               />
             </td>
@@ -124,7 +124,7 @@ defineExpose({ limpiar })
               <input
                 type="text" inputmode="decimal"
                 :value="problema.demanda[j]"
-                class="w-20 rounded border border-neutral-700 bg-neutral-900 px-1 py-1 text-center"
+                class="w-16 rounded border border-neutral-700 bg-neutral-900 px-1 py-1 text-center"
                 @change="problema.demanda[j] = Number($event.target.value) || 0; emit('change')"
               />
             </td>

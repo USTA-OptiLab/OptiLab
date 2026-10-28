@@ -166,7 +166,7 @@ class Api:
 
 def main():
     url = DEV_SERVER_URL if os.environ.get("OPTILAB_DEV") or not DIST_INDEX.exists() else str(DIST_INDEX)
-    webview.create_window("OptiLab", url, js_api=Api())
+    webview.create_window("OptiLab", url, js_api=Api(), width=1280, height=800, min_size=(640, 480))
     # pywebview forces the Qt backend on any KDE session regardless of what's
     # installed; we only have GTK/WebKit bindings, so pin the GTK backend.
     webview.start(gui="gtk")
