@@ -87,12 +87,16 @@ function puntoMedio(a) {
 </script>
 
 <template>
-  <svg :viewBox="`0 0 ${WIDTH} ${HEIGHT}`" class="h-full w-full font-sans" role="img">
+  <svg :viewBox="`0 0 ${WIDTH} ${HEIGHT}`" class="h-full w-full rounded bg-white font-sans" role="img">
     <text x="12" y="20" font-size="13" font-weight="600" :fill="COLOR.texto">{{ titulo }}</text>
 
     <defs>
-      <marker id="flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-        <path d="M 0 0 L 10 5 L 0 10 z" :fill="COLOR.azul" />
+      <!-- userSpaceOnUse: la punta mantiene un tamaño fijo sin importar el grosor de la línea -->
+      <marker
+        v-for="c in [COLOR.azul, COLOR.verde, COLOR.rojo]" :key="c" :id="`flecha-${c.slice(1)}`"
+        viewBox="0 0 10 10" refX="9" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"
+      >
+        <path d="M 0 0 L 10 5 L 0 10 z" :fill="c" />
       </marker>
     </defs>
 
@@ -101,7 +105,7 @@ function puntoMedio(a) {
         :x1="X_O + 14" :y1="yo[a.i]" :x2="X_D - 14" :y2="yd[a.j]"
         :stroke="colorArista(a)" :stroke-width="anchoArista(a)"
         :stroke-dasharray="a.tipo === 'entra' ? '6,4' : undefined"
-        marker-end="url(#flecha)"
+        :marker-end="`url(#flecha-${colorArista(a).slice(1)})`"
       />
       <rect :x="puntoMedio(a).x - 22" :y="puntoMedio(a).y - 9" width="44" height="14" fill="white" opacity="0.85" />
       <text :x="puntoMedio(a).x" :y="puntoMedio(a).y + 2" text-anchor="middle" font-size="10" font-weight="600" :fill="colorArista(a)">{{ etiquetaArista(a) }}</text>
