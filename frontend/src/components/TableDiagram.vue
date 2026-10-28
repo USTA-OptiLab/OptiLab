@@ -69,7 +69,7 @@ const leyenda = [
 </script>
 
 <template>
-  <svg :viewBox="`0 0 ${width} ${height}`" class="h-full w-full font-sans" role="img">
+  <svg :viewBox="`0 0 ${width} ${height}`" class="h-full w-full rounded bg-white font-sans" role="img">
     <text x="12" y="20" font-size="13" font-weight="600" :fill="COLOR.texto">{{ titulo }}</text>
 
     <text
