@@ -4,6 +4,7 @@ import GranMMethod from './gran-m-method/GranMMethod.vue'
 import TwoPhaseSolver from './two-phase/TwoPhaseSolver.vue'
 import GraphicMethod from './graphic-method/GraphicMethod.vue'
 import PrimalDualView from './primal-dual/PrimalDualView.vue'
+import ModiMethod from './modi-method/ModiMethod.vue'
 
 // Cada método nuevo se agrega aquí para que aparezca en el menú
 const methods = [
@@ -30,6 +31,12 @@ const methods = [
     name: 'Primal → Dual',
     description: 'Construye el dual de un problema de programación lineal y lo resuelve con Simplex exacto.',
     component: PrimalDualView,
+  },
+  {
+    id: 'modi',
+    name: 'Método MODI',
+    description: 'Problema de transporte: solución inicial, iteraciones MODI, análisis de sensibilidad y comparación de métodos.',
+    component: ModiMethod,
   },
 ]
 
