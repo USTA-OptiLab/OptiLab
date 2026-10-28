@@ -6,6 +6,7 @@ import webview
 from scipy import stats
 
 from optilab import gran_m_method
+from optilab import doubolfeis_metod
 
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 DIST_INDEX = FRONTEND_DIR / "dist" / "index.html"
@@ -33,9 +34,19 @@ class Api:
         ) as exc:
             return {"status": "error", "message": str(exc)}
 
+    def two_phase(self, problem):
+        try:
+            return doubolfeis_metod.solve(problem)
+        except (KeyError, ValueError, ZeroDivisionError, RuntimeError) as exc:
+            return {"status": "error", "message": str(exc)}
+
 
 def main():
-    url = DEV_SERVER_URL if os.environ.get("OPTILAB_DEV") or not DIST_INDEX.exists() else str(DIST_INDEX)
+    url = (
+        DEV_SERVER_URL
+        if os.environ.get("OPTILAB_DEV") or not DIST_INDEX.exists()
+        else str(DIST_INDEX)
+    )
     webview.create_window("OptiLab", url, js_api=Api())
     # pywebview forces the Qt backend on any KDE session regardless of what's
     # installed; we only have GTK/WebKit bindings, so pin the GTK backend.
