@@ -1,0 +1,7 @@
+{
+  "origenes": ["Planta 1", "Planta 2", "Planta 3"],
+  "destinos": ["Ciudad A", "Ciudad B", "Ciudad C", "Ciudad D"],
+  "costos": [[19, 30, 50, 10], [70, 30, 40, 60], [40, 8, 70, 20]],
+  "oferta": [7, 9, 18],
+  "demanda": [5, 8, 7, 14]
+}
