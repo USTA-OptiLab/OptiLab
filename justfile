@@ -40,20 +40,6 @@ build:
 run:
     {{python}} -m optilab.app
 
-# Run the graphical-method module against the built frontend (run `just build` first)
-graphic:
-    {{python}} -m optilab.graphic_method
-
-# Run the Vite dev server and the graphical-method module together
-graphic-dev:
-    #!/usr/bin/env bash
-    set -euo pipefail -m
-    (cd frontend && exec npm run dev) &
-    vite_pid=$!
-    trap 'kill -TERM -- -$vite_pid 2>/dev/null' EXIT
-    sleep 1
-    OPTILAB_DEV=1 {{python}} -m optilab.graphic_method
-
 test:
     {{python}} -m pytest
 
