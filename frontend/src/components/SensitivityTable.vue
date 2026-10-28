@@ -12,7 +12,7 @@ function num(x, dec) {
 </script>
 
 <template>
-  <div class="space-y-2 text-sm">
+  <div class="space-y-2 text-base">
     <p class="text-neutral-400">
       Rango en el que puede variar el costo de cada ruta (los demás fijos) sin cambiar la solución óptima.
     </p>
@@ -20,10 +20,10 @@ function num(x, dec) {
     <table v-else class="w-full border-collapse text-left">
       <thead>
         <tr class="border-b border-neutral-700 text-neutral-300">
-          <th class="py-2 pr-4">Ruta</th>
-          <th class="py-2 pr-4">Tipo</th>
-          <th class="py-2 pr-4">Costo</th>
-          <th class="py-2">Rango del costo</th>
+          <th class="py-3 pr-5">Ruta</th>
+          <th class="py-3 pr-5">Tipo</th>
+          <th class="py-3 pr-5">Costo</th>
+          <th class="py-3">Rango del costo</th>
         </tr>
       </thead>
       <tbody>
@@ -32,10 +32,10 @@ function num(x, dec) {
           class="border-b border-neutral-800"
           :class="f.basica ? 'bg-indigo-950/40' : k % 2 ? 'bg-neutral-900/40' : ''"
         >
-          <td class="py-2 pr-4">{{ f.origen }} → {{ f.destino }}</td>
-          <td class="py-2 pr-4">{{ f.basica ? 'básica' : 'no básica' }}</td>
-          <td class="py-2 pr-4">{{ num(f.costo, decimales) }}</td>
-          <td class="py-2">
+          <td class="py-3 pr-5">{{ f.origen }} → {{ f.destino }}</td>
+          <td class="py-3 pr-5">{{ f.basica ? 'básica' : 'no básica' }}</td>
+          <td class="py-3 pr-5">{{ num(f.costo, decimales) }}</td>
+          <td class="py-3">
             [{{ f.minimo === null ? '-∞' : num(f.minimo, decimales) }}, {{ f.maximo === null ? '+∞' : num(f.maximo, decimales) }}]
           </td>
         </tr>
