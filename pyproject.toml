@@ -20,6 +20,7 @@ dev = [
 
 [project.scripts]
 optilab = "optilab.app:main"
+optilab-cli = "optilab.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
