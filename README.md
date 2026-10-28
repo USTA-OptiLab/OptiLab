@@ -41,12 +41,21 @@ Run `just` with no args to list all recipes.
 ## Repository layout
 
 ```
-src/optilab/       Python package (pywebview app + Api exposed to JS)
-tests/              pytest suite
-frontend/           Vue 3 + Tailwind + Vite app
-justfile            task runner — source of truth for dev commands
-pyproject.toml      Python package/deps config (ruff + pytest config lives here too)
+src/optilab/              Python package (pywebview app + Api exposed to JS)
+src/optilab/app.py        Api class — the single bridge between frontend and Python
+src/optilab/<method>/     one subpackage per optimization method (algorithm + entry point)
+tests/                    pytest suite, one test module per method
+frontend/                 Vue 3 + Tailwind + Vite app
+frontend/src/App.vue      top-level Vue component, wires methods into the UI
+frontend/src/<method>/    one folder per optimization method's Vue components
+frontend/src/components/  shared components reused by 2+ methods
+justfile                  task runner — source of truth for dev commands
+pyproject.toml            Python package/deps config (ruff + pytest config lives here too)
 ```
+
+## Adding a new optimization method
+
+See [AGENTS.md](AGENTS.md#adding-a-new-optimization-method) for the step-by-step convention (backend subpackage → `Api` method → frontend folder → tests). `feat/doubolfeis-metod` is the branch to use as a reference example.
 
 ## Contributing
 

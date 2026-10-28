@@ -23,7 +23,7 @@ There is no frontend lint/test command configured yet. If you add one (ESLint, V
 
 ## Commit messages
 
-Commits must follow [Conventional Commits](https://www.conventionalcommits.org/) — this is enforced by `commitlint` in CI (`.github/workflows/lint.yml`), using the shared `@commitlint/config-conventional` rules (see `commitlint.config.js`).
+Commits must follow [Conventional Commits](https://www.conventionalcommits.org/) — this is enforced by `commitlint` in CI (`.github/workflows/lint.yml`), using the shared `@commitlint/config-conventional` rules (see `commitlint.config.mjs`).
 
 Format:
 
@@ -57,3 +57,7 @@ Keep the subject imperative and lowercase after the type; avoid a trailing perio
 - **Python**: formatted and linted with `ruff` (`just format`, `just lint`). Config lives in `pyproject.toml`. Add tests under `tests/` for new behavior — `pytest` config (`testpaths = ["tests"]`) is also in `pyproject.toml`.
 - **Frontend**: Vue 3 `<script setup>` SFCs, Tailwind utility classes (v4, via `@tailwindcss/vite` — no `tailwind.config.js` needed for basic usage). Match the existing style in `frontend/src/App.vue`.
 - Avoid introducing new tooling or abstractions beyond what a change needs — this is a small app; prefer the simplest change that works.
+
+## Adding a new optimization method
+
+If your PR adds a solver (simplex variant, transportation algorithm, etc.), see [AGENTS.md](AGENTS.md#adding-a-new-optimization-method) for the expected shape: its own `src/optilab/<method_name>/` package, wired into the single `Api` class in `app.py`, with matching Vue components under `frontend/src/<method-name>/` and tests under `tests/`. A solver that isn't reachable from the running app (`just dev`) isn't considered integrated — call that out explicitly in the PR description if it's intentionally prototype-only.
