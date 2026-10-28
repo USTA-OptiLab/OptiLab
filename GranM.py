@@ -1,6 +1,10 @@
-import sympy as sp
 import pandas as pd
-from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication
+import sympy as sp
+from sympy.parsing.sympy_parser import (
+    implicit_multiplication,
+    parse_expr,
+    standard_transformations,
+)
 
 M = sp.Symbol("M")
 VALOR_GRANDE = 10**6   # Para decidir el pivote, M se reemplaza por un número muy grande
