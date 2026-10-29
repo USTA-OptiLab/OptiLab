@@ -51,7 +51,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="space-y-5">
+  <div class="mx-auto w-full max-w-5xl space-y-5 p-6">
     <div>
       <h2 class="text-lg font-semibold">Primal → Dual</h2>
       <p class="text-sm text-slate-400">Ingresa el problema primal; se construye el dual y se resuelve.</p>
