@@ -6,7 +6,7 @@ import numpy as np
 import webview
 from scipy import stats
 
-from optilab import gran_m_method, graphic_method, two_phase
+from optilab import gran_m_method, graphic_method, primal_dual, two_phase
 
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 DIST_INDEX = FRONTEND_DIR / "dist" / "index.html"
@@ -45,6 +45,12 @@ class Api:
             return graphic_method.solve_graphical(payload)
         except (TypeError, ValueError) as exc:
             return {"ok": False, "error": str(exc)}
+
+    def solve_primal_dual(self, payload):
+        try:
+            return {"status": "ok", **primal_dual.solve_request(payload)}
+        except (TypeError, ValueError, ZeroDivisionError) as exc:
+            return {"status": "error", "message": str(exc)}
 
 
 def main():
