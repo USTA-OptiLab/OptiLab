@@ -14,7 +14,11 @@ const constraints = ref([
   { coefs: ['0', '1'], type: '<=', rhs: '8' },
 ])
 
+const context = ref('')
+
 const result = ref(null)
+// Copia del modelo tal como se resolvió, para que editar el formulario no cambie la interpretación
+const solved = ref(null)
 const error = ref('')
 const loading = ref(false)
 
@@ -62,7 +66,14 @@ async function solve() {
       constraints: constraints.value,
     })
     if (res.status === 'error') error.value = res.message
-    else result.value = res
+    else {
+      result.value = res
+      solved.value = {
+        sense: sense.value,
+        context: context.value.trim(),
+        constraints: constraints.value.map((c) => ({ type: c.type, rhs: c.rhs })),
+      }
+    }
   } catch (e) {
     error.value = e.message ?? String(e)
   } finally {
@@ -77,6 +88,52 @@ const statusText = {
 }
 
 const typeLabel = { '<=': '≤', '>=': '≥', '=': '=' }
+
+const joinList = (items) =>
+  items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} y ${items.at(-1)}`
+
+// Texto predeterminado: sólo cambian los valores de la solución según MAX/MIN
+const interpretation = computed(() => {
+  const res = result.value
+  const model = solved.value
+  if (!res || !model) return []
+  if (res.status === 'infeasible') {
+    return [
+      'Al terminar la Fase 1 la función auxiliar quedó con r > 0: no existe ninguna combinación de valores que cumpla todas las restricciones a la vez, por lo que el problema no tiene solución factible.',
+    ]
+  }
+  if (res.status === 'unbounded') {
+    return [
+      `La función objetivo puede ${model.sense === 'max' ? 'aumentar' : 'disminuir'} indefinidamente sin violar ninguna restricción, por lo que el problema no tiene un valor ${model.sense === 'max' ? 'máximo' : 'mínimo'} finito.`,
+    ]
+  }
+
+  const isMax = model.sense === 'max'
+  const decision = Object.entries(res.decision).map(([name, v]) => `${name} = ${v}`)
+  const paragraphs = [
+    `Para ${isMax ? 'maximizar' : 'minimizar'} Z, la solución óptima es ${joinList(decision)}. ` +
+      `Con esta combinación se alcanza el valor ${isMax ? 'máximo' : 'mínimo'} de la función objetivo, ` +
+      `Z${isMax ? 'max' : 'min'} = ${res.z}, y ninguna otra solución factible produce un valor ${isMax ? 'mayor' : 'menor'}.`,
+  ]
+
+  const slack = [], active = []
+  model.constraints.forEach((con, i) => {
+    const name = `S${sub(i + 1)}`
+    // El backend invierte el sentido de las restricciones con K negativo
+    const type = String(con.rhs).trim().startsWith('-') ? { '<=': '>=', '>=': '<=', '=': '=' }[con.type] : con.type
+    const value = res.solution[name]
+    if (type === '=' || value === undefined) return
+    if (value === '0') active.push(`R${sub(i + 1)}`)
+    else slack.push(`${name} = ${value} (${type === '<=' ? 'holgura: sobran' : 'exceso: se supera el mínimo en'} ${value} unidades en R${sub(i + 1)})`)
+  })
+  if (slack.length) paragraphs.push(`Además, ${joinList(slack)}.`)
+  if (active.length) {
+    paragraphs.push(
+      `${active.length === 1 ? 'La restricción' : 'Las restricciones'} ${joinList(active)} ${active.length === 1 ? 'se cumple' : 'se cumplen'} exactamente en el óptimo (sin holgura ni exceso).`,
+    )
+  }
+  return paragraphs
+})
 </script>
 
 <template>
@@ -88,6 +145,16 @@ const typeLabel = { '<=': '≤', '>=': '≥', '=': '=' }
 
     <!-- Modelo -->
     <section class="flex flex-col gap-4 rounded-lg border border-neutral-800 p-4">
+      <label class="flex flex-col gap-1">
+        <span class="text-sm text-neutral-400">Contexto del problema (opcional)</span>
+        <textarea
+          v-model="context"
+          rows="3"
+          placeholder="Ej.: Una fábrica produce dos productos, x₁ y x₂, con una ganancia de 5 y 8 por unidad…"
+          class="resize-y rounded-md bg-neutral-900 px-3 py-2"
+        />
+      </label>
+
       <div class="flex flex-wrap items-center gap-2">
         <select v-model="sense" class="rounded-md bg-neutral-900 px-2 py-1">
           <option value="max">Maximizar</option>
@@ -193,6 +260,16 @@ const typeLabel = { '<=': '≤', '>=': '≥', '=': '=' }
         </div>
 
         <TableauTable v-if="step.columns" :step="step" />
+      </section>
+
+      <!-- Interpretación -->
+      <section class="flex flex-col gap-3 rounded-lg border border-emerald-900 p-4">
+        <h3 class="text-lg font-semibold">Interpretación</h3>
+        <div v-if="solved.context" class="flex flex-col gap-1">
+          <p class="text-sm text-neutral-400">Contexto:</p>
+          <p class="whitespace-pre-line text-neutral-300">{{ solved.context }}</p>
+        </div>
+        <p v-for="(paragraph, n) in interpretation" :key="n" class="text-neutral-200">{{ paragraph }}</p>
       </section>
     </template>
   </div>

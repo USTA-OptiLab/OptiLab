@@ -138,3 +138,15 @@ def test_invalid_input():
 def test_api_two_phase_reports_errors():
     assert Api().two_phase(WORKED_EXAMPLE)["z"] == "74"
     assert Api().two_phase({"objective": [], "constraints": []})["status"] == "error"
+
+
+def test_objective_note_formats_negative_coefficients():
+    result = solve(
+        {
+            "sense": "max",
+            "objective": [-5, 7],
+            "constraints": [{"coefs": [1, 1], "type": "<=", "rhs": 4}],
+        }
+    )
+    start2 = _step(result, "Fase 2 · Tabla inicial (función original visible)")
+    assert start2["notes"][:2] == ["MAX Z = −5x₁ + 7x₂", "Z + 5x₁ − 7x₂ = 0"]
