@@ -1,150 +1,144 @@
 import pytest
 
-from optilab.vogel import main, solve_vogel
+from optilab.vogel import balance, main, penalty, solve_vogel
 
 
-def test_menu_solves_user_exercise(monkeypatch, capsys):
-    answers = iter(["2", "1", "2", "3", "30 40", "20 15 10", "4 6 8", "5 3 7", "0"])
-    monkeypatch.setattr("builtins.input", lambda _="": next(answers))
-    main()
-    assert "Total cost: 210" in capsys.readouterr().out
+def assert_respects_totals(allocation, supply, demand):
+    row_sums = [sum(x or 0 for x in row) for row in allocation]
+    col_sums = [sum(x or 0 for x in col) for col in zip(*allocation)]
+    assert row_sums == pytest.approx(supply)
+    assert col_sums == pytest.approx(demand)
 
 
-def test_menu_examples_and_invalid_option(monkeypatch, capsys):
-    answers = iter(["x", "1", "0"])
-    monkeypatch.setattr("builtins.input", lambda _="": next(answers))
-    main()
-    out = capsys.readouterr().out
-    assert "invalid option" in out
-    assert "Total cost: 779" in out
+def test_penalty():
+    assert penalty([4, 9, 6]) == 2
+    assert penalty([5]) == 5
+    assert penalty([]) == 0
 
 
-def test_menu_prints_detailed_steps(monkeypatch, capsys):
-    answers = iter(["2", "1", "2", "3", "30 40", "20 15 10", "4 6 8", "5 3 7", "0"])
-    monkeypatch.setattr("builtins.input", lambda _="": next(answers))
-    main()
-    out = capsys.readouterr().out
-    assert "added a dummy column" in out
-    assert "Step 1" in out
-    assert "Highest penalty: 4 (row S1)" in out
-    assert "Crossed out: column Dummy (demand covered)" in out
-    assert "Remaining supply:" in out
+def test_balance_adds_dummy_column(capsys):
+    costs, _, demand = balance([[4, 6, 8], [5, 3, 7]], [30, 40], [20, 15, 10])
+    assert costs == [[4, 6, 8, 0], [5, 3, 7, 0]]
+    assert demand == [20, 15, 10, 25]
+    assert "DESTINO ficticio" in capsys.readouterr().out
 
 
-def test_steps_record_crossed_lines_and_remaining():
-    result = solve_vogel([[2, 3], [4, 1]], [10, 10], [10, 10])
-    first = result["steps"][0]
-    assert first["supply_before"] == [10, 10]
-    assert first["supply_after"][first["cell"][0]] == 0
-    assert first["crossed"][0] == "row"
-    assert result["costs"] == [[2, 3], [4, 1]]
-
-
-def assert_respects_totals(result, supply, demand, dummy_supply=0, dummy_demand=0):
-    allocation = result["allocation"]
-    row_sums = [sum(row) for row in allocation]
-    col_sums = [sum(col) for col in zip(*allocation)]
-    assert row_sums == pytest.approx(
-        list(supply) + [dummy_supply] * (len(row_sums) - len(supply))
-    )
-    assert col_sums == pytest.approx(
-        list(demand) + [dummy_demand] * (len(col_sums) - len(demand))
-    )
+def test_balance_adds_dummy_row(capsys):
+    costs, supply, _ = balance([[4, 6], [5, 3]], [10, 10], [15, 10])
+    assert costs == [[4, 6], [5, 3], [0, 0]]
+    assert supply == [10, 10, 5]
+    assert "ORIGEN ficticio" in capsys.readouterr().out
 
 
 def test_balanced_classic_example():
     costs = [[19, 30, 50, 10], [70, 30, 40, 60], [40, 8, 70, 20]]
-    result = solve_vogel(costs, [7, 9, 18], [5, 8, 7, 14])
-    assert result["total_cost"] == 779
-    assert result["dummy"] is None
-    assert result["allocation"] == [
-        [5, 0, 0, 2],
-        [0, 0, 7, 2],
-        [0, 8, 0, 10],
-    ]
-    assert result["steps"][0]["cell"] == [2, 1]
-    assert_respects_totals(result, [7, 9, 18], [5, 8, 7, 14])
+    *_, allocation, total_cost = solve_vogel(costs, [7, 9, 18], [5, 8, 7, 14], False)
+    assert total_cost == 779
+    assert_respects_totals(allocation, [7, 9, 18], [5, 8, 7, 14])
 
 
-def test_excess_supply_adds_dummy_column():
-    result = solve_vogel([[4, 6, 8], [5, 3, 7]], [30, 40], [20, 15, 10])
-    assert result["dummy"] == "column"
-    assert len(result["allocation"][0]) == 4
-    assert result["total_cost"] == 210
-    assert_respects_totals(result, [30, 40], [20, 15, 10], dummy_demand=25)
+def test_excess_supply():
+    _, supply, demand, allocation, total_cost = solve_vogel(
+        [[4, 6, 8], [5, 3, 7]], [30, 40], [20, 15, 10], False
+    )
+    assert total_cost == 210
+    assert_respects_totals(allocation, supply, demand)
 
 
-def test_excess_demand_adds_dummy_row():
-    result = solve_vogel([[4, 6], [5, 3]], [10, 10], [15, 10])
-    assert result["dummy"] == "row"
-    assert len(result["allocation"]) == 3
-    assert result["total_cost"] == 70
-    assert_respects_totals(result, [10, 10], [15, 10], dummy_supply=5)
+def test_excess_demand():
+    _, supply, demand, allocation, total_cost = solve_vogel(
+        [[4, 6], [5, 3]], [10, 10], [15, 10], False
+    )
+    assert len(allocation) == 3
+    assert total_cost == 70
+    assert_respects_totals(allocation, supply, demand)
 
 
 def test_degenerate_keeps_basic_cell_count():
-    result = solve_vogel([[2, 3], [4, 1]], [10, 10], [10, 10])
-    assert result["total_cost"] == 30
-    assert len(result["steps"]) == 2 + 2 - 1
+    *_, allocation, total_cost = solve_vogel(
+        [[2, 3], [4, 1]], [10, 10], [10, 10], False
+    )
+    assert total_cost == 30
+    assert sum(1 for row in allocation for x in row if x is not None) == 2 + 2 - 1
 
 
 def test_single_cell():
-    result = solve_vogel([[7]], [5], [5])
-    assert result["allocation"] == [[5]]
-    assert result["total_cost"] == 35
+    *_, allocation, total_cost = solve_vogel([[7]], [5], [5], False)
+    assert allocation == [[5]]
+    assert total_cost == 35
 
 
-@pytest.mark.parametrize(
-    "costs, supply, demand",
-    [
-        ([], [], []),
-        ([[1, 2]], [5], [3]),
-        ([[1, 2], [3, 4]], [5], [3, 2]),
-        ([[1, -2]], [5], [2, 3]),
-        ([[1, 2]], [-5], [2, 3]),
-        ([[1, 2]], [float("nan")], [1, 1]),
-        ([[1, 2]], [float("inf")], [1, 1]),
-        ([[float("nan"), 2]], [2], [1, 1]),
-    ],
-)
-def test_invalid_input_raises(costs, supply, demand):
-    with pytest.raises(ValueError):
-        solve_vogel(costs, supply, demand)
-
-
-def test_maximize_matches_minimizing_transformed_costs():
-    profits = [[19, 30, 50, 10], [70, 30, 40, 60], [40, 8, 70, 20]]
-    supply, demand = [7, 9, 18], [5, 8, 7, 14]
-    result = solve_vogel(profits, supply, demand, maximize=True)
-    flipped = solve_vogel([[70 - v for v in row] for row in profits], supply, demand)
-    assert result["allocation"] == flipped["allocation"]
-    assert result["total_cost"] == 1548
-    assert result["maximize"] is True
-    assert_respects_totals(result, supply, demand)
-
-
-def test_maximize_unbalanced_uses_zero_profit_dummy():
-    result = solve_vogel([[4, 6, 8], [5, 3, 7]], [30, 40], [20, 15, 10], maximize=True)
-    assert result["dummy"] == "column"
-    assert all(row[-1] == 0 for row in result["costs"])
-    assert_respects_totals(result, [30, 40], [20, 15, 10], dummy_demand=25)
-
-
-def test_minimize_is_default():
-    assert solve_vogel([[7]], [5], [5])["maximize"] is False
-
-
-def test_menu_maximize_option(monkeypatch, capsys):
-    answers = iter(["2", "2", "2", "3", "30 40", "20 15 10", "4 6 8", "5 3 7", "0"])
-    monkeypatch.setattr("builtins.input", lambda _="": next(answers))
+def test_main_example(monkeypatch, capsys):
+    monkeypatch.setattr("builtins.input", lambda _="": "1")
     main()
     out = capsys.readouterr().out
-    assert "Highest profit in that" in out
-    assert "Total profit:" in out
+    assert "ITERACIÓN 1" in out
+    assert "Costo total Z = 779" in out
 
 
-def test_menu_rejects_nan_and_exits_on_eof(monkeypatch, capsys):
-    answers = iter(["2", "1", "1", "2", "nan", "1 1", "1 2"])
+def run_main(monkeypatch, answers):
+    answers = iter(answers)
+    monkeypatch.setattr("builtins.input", lambda _="": next(answers))
+    main()
+
+
+def test_main_user_input_with_context(monkeypatch, capsys):
+    run_main(
+        monkeypatch,
+        ["2", "Mi empresa", "2", "3", "4 6 8", "5 3 7", "30 40", "20 15 10"],
+    )
+    out = capsys.readouterr().out
+    assert "Problema: Mi empresa" in out
+    assert "DESTINO ficticio" in out
+    assert "Costo total Z = 210" in out
+    assert "El costo total de transporte de esta solución inicial es 210" in out
+    assert "Sobra oferta: 25 unidades" in out
+
+
+def test_main_empty_context_uses_default(monkeypatch, capsys):
+    run_main(monkeypatch, ["2", "", "1", "1", "7", "5", "5"])
+    out = capsys.readouterr().out
+    assert "Problema de transporte sin descripción" in out
+    assert "El origen O1 envía 5 unidades al destino D1" in out
+
+
+def test_main_retries_invalid_input(monkeypatch, capsys):
+    run_main(
+        monkeypatch,
+        [
+            "2",
+            "",
+            "abc",
+            "0",
+            "2",
+            "3",
+            "4 6",
+            "4 6 x",
+            "4 6 8",
+            "5 -3 7",
+            "5 3 7",
+            "nan 40",
+            "30 40",
+            "20 15",
+            "20 15 10",
+        ],
+    )
+    out = capsys.readouterr().out
+    assert "ingrese un número entero" in out
+    assert "mayor o igual a 1" in out
+    assert "Debe ingresar 3 valores y ingresó 2" in out
+    assert "números finitos mayores o iguales a 0" in out
+    assert "Costo total Z = 210" in out
+
+
+def test_main_excess_demand_interpretation(monkeypatch, capsys):
+    run_main(monkeypatch, ["2", "", "2", "2", "4 6", "5 3", "10 10", "15 10"])
+    out = capsys.readouterr().out
+    assert "Falta oferta: 5 unidades" in out
+
+
+def test_main_exits_cleanly_on_eof(monkeypatch, capsys):
+    answers = iter(["2", "", "2"])
 
     def fake_input(_=""):
         try:
@@ -154,6 +148,4 @@ def test_menu_rejects_nan_and_exits_on_eof(monkeypatch, capsys):
 
     monkeypatch.setattr("builtins.input", fake_input)
     main()
-    out = capsys.readouterr().out
-    assert "finite numbers >= 0" in out
-    assert "nan" not in out.replace("finite", "")
+    assert "Entrada cancelada" in capsys.readouterr().out
