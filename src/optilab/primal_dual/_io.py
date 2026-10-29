@@ -13,7 +13,9 @@ def parse_number(v):
     try:
         return Fraction(text)
     except (ValueError, ZeroDivisionError):
-        raise ValueError(f"Número inválido: '{v}'. Use enteros, decimales o fracciones (ej: 3, 2.5, 1/3).")
+        raise ValueError(
+            f"Número inválido: '{v}'. Use enteros, decimales o fracciones (ej: 3, 2.5, 1/3)."
+        )
 
 
 def fmt(v):
@@ -25,7 +27,10 @@ def fmt(v):
 def problem_from_payload(data):
     try:
         c = [parse_number(v) for v in data["c"]]
-        cons = [([parse_number(v) for v in r["a"]], r["type"], parse_number(r["b"])) for r in data["cons"]]
+        cons = [
+            ([parse_number(v) for v in r["a"]], r["type"], parse_number(r["b"]))
+            for r in data["cons"]
+        ]
         return Problem(data["sense"], c, cons, data["signs"])
     except (KeyError, TypeError):
         raise ValueError("Datos del problema incompletos.")
@@ -52,8 +57,13 @@ def describe(p):
     """Texto legible del problema: objetivo, restricciones y signos."""
     return {
         "objective": f"{p.sense} Z = {_expr(p.c, p.names)}",
-        "constraints": [f"{_expr(a, p.names)} {t} {fmt(b)['frac']}" for a, t, b in p.cons],
-        "signs": [f"{name} {s if s != 'libre' else 'libre'}" for name, s in zip(p.names, p.signs)],
+        "constraints": [
+            f"{_expr(a, p.names)} {t} {fmt(b)['frac']}" for a, t, b in p.cons
+        ],
+        "signs": [
+            f"{name} {s if s != 'libre' else 'libre'}"
+            for name, s in zip(p.names, p.signs)
+        ],
     }
 
 
