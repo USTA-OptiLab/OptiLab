@@ -393,9 +393,16 @@ class TwoPhaseSolver:
             for j, cj in enumerate(self.c)
             if cj != 0
         )
-        objective = " + ".join(
-            f"{fmt(cj)}{self.columns[j]}" for j, cj in enumerate(self.c)
+        objective = " ".join(
+            f"{'−' if cj < 0 else '+'} {fmt(abs(cj))}{self.columns[j]}"
+            for j, cj in enumerate(self.c)
+            if cj != 0
         )
+        # El primer término no lleva "+" y su signo "−" va pegado al número
+        objective = objective.removeprefix("+ ")
+        if objective.startswith("− "):
+            objective = "−" + objective[2:]
+        objective = objective or "0"
         self._snapshot(
             2,
             "Fase 2 · Tabla inicial (función original visible)",
