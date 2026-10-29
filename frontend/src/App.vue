@@ -3,6 +3,7 @@ import { shallowRef } from 'vue'
 import GranMMethod from './gran-m-method/GranMMethod.vue'
 import TwoPhaseSolver from './two-phase/TwoPhaseSolver.vue'
 import GraphicMethod from './graphic-method/GraphicMethod.vue'
+import PrimalDualView from './primal-dual/PrimalDualView.vue'
 
 // Cada método nuevo se agrega aquí para que aparezca en el menú
 const methods = [
@@ -23,6 +24,12 @@ const methods = [
     name: 'Método Gráfico',
     description: 'Programación lineal con dos variables: región factible, vértices y solución óptima.',
     component: GraphicMethod,
+  },
+  {
+    id: 'primal-dual',
+    name: 'Primal → Dual',
+    description: 'Construye el dual de un problema de programación lineal y lo resuelve con Simplex exacto.',
+    component: PrimalDualView,
   },
 ]
 
