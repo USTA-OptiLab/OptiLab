@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -37,7 +38,8 @@ def main():
     webview.create_window("OptiLab", url, js_api=Api())
     # pywebview forces the Qt backend on any KDE session regardless of what's
     # installed; we only have GTK/WebKit bindings, so pin the GTK backend.
-    webview.start(gui="gtk")
+    # On Windows/macOS let pywebview pick the native backend (WebView2/Cocoa).
+    webview.start(gui="gtk" if sys.platform.startswith("linux") else None)
 
 
 if __name__ == "__main__":
