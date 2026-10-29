@@ -1,28 +1,39 @@
-"""Shell pywebview de OptiLab. `Api` es la única superficie puente frontend ↔ Python."""
-
 import os
 from pathlib import Path
 
-from optilab.primal_dual import solve_request
+import numpy as np
+import webview
+from scipy import stats
 
-DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist" / "index.html"
+from optilab import primal_dual
+
+FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
+DIST_INDEX = FRONTEND_DIR / "dist" / "index.html"
+DEV_SERVER_URL = "http://localhost:5173"
 
 
 class Api:
+    def describe(self, values):
+        data = np.asarray(values, dtype=float)
+        return {
+            "mean": float(np.mean(data)),
+            "std": float(np.std(data)),
+            "zscores": stats.zscore(data).tolist(),
+        }
+
     def solve_primal_dual(self, payload):
-        """Primal → dual → resolver el dual. Nunca propaga excepciones al puente JS."""
         try:
-            return {"status": "ok", **solve_request(payload)}
-        except (ValueError, ZeroDivisionError) as exc:
+            return {"status": "ok", **primal_dual.solve_request(payload)}
+        except (TypeError, ValueError, ZeroDivisionError) as exc:
             return {"status": "error", "message": str(exc)}
 
 
 def main():
-    import webview
-
-    url = os.environ.get("OPTILAB_DEV_URL") or str(DIST)
-    webview.create_window("OptiLab", url, js_api=Api(), width=1100, height=800, min_size=(760, 560))
-    webview.start(http_server=True)
+    url = DEV_SERVER_URL if os.environ.get("OPTILAB_DEV") or not DIST_INDEX.exists() else str(DIST_INDEX)
+    webview.create_window("OptiLab", url, js_api=Api())
+    # pywebview forces the Qt backend on any KDE session regardless of what's
+    # installed; we only have GTK/WebKit bindings, so pin the GTK backend.
+    webview.start(gui="gtk")
 
 
 if __name__ == "__main__":
