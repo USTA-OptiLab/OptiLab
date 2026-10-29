@@ -1,324 +1,349 @@
+"""
+Método de Aproximación de Vogel (MAV) para el problema de transporte.
+
+- Balancea automáticamente el problema (agrega origen o destino ficticio).
+- Muestra las penalizaciones y la asignación de cada iteración.
+- Entrega la solución básica factible inicial y el costo total.
+"""
+
 import math
 
 
-def _penalty(values, key):
-    if len(values) == 1:
-        return values[0]
-    best = sorted(values, key=key)
-    return abs(best[1] - best[0])
-
-
-def solve_vogel(costs, supply, demand, maximize=False):
-    """Solve a transportation problem with Vogel's approximation method.
-
-    By default it minimizes cost. With `maximize=True` the values are
-    profits: penalties use the two highest values and the highest value in
-    the chosen line is picked first.
-
-    Unbalanced problems get a dummy column (excess supply) or dummy row
-    (excess demand) with zero cost, so `allocation` may be one row/column
-    larger than `costs`; `dummy` says which one ("row", "column" or None).
-    """
-    # Smaller key = better value, so both objectives share the same code.
-    key = (lambda v: -v) if maximize else (lambda v: v)
-    costs = [[float(c) for c in row] for row in costs]
-    supply = [float(s) for s in supply]
-    demand = [float(d) for d in demand]
-
-    if not costs or not costs[0]:
-        raise ValueError("costs must be a non-empty matrix")
-    if any(len(row) != len(demand) for row in costs) or len(costs) != len(supply):
-        raise ValueError("costs dimensions must match supply and demand")
-    values = supply + demand + [c for row in costs for c in row]
-    if not all(math.isfinite(v) for v in values):
-        raise ValueError("costs, supply and demand must be finite numbers")
-    if any(v < 0 for v in values):
-        raise ValueError("costs, supply and demand must be non-negative")
-
-    dummy = None
+def balance(costs, supply, demand):
+    """Add a dummy row or column (cost 0) if supply != demand."""
+    costs = [row[:] for row in costs]
+    supply, demand = supply[:], demand[:]
     total_supply, total_demand = sum(supply), sum(demand)
-    if not math.isclose(total_supply, total_demand):
-        if total_supply > total_demand:
-            dummy = "column"
-            demand.append(total_supply - total_demand)
-            for row in costs:
-                row.append(0.0)
-        else:
-            dummy = "row"
-            supply.append(total_demand - total_supply)
-            costs.append([0.0] * len(demand))
 
-    n_rows, n_cols = len(supply), len(demand)
-    allocation = [[0.0] * n_cols for _ in range(n_rows)]
-    rows, cols = set(range(n_rows)), set(range(n_cols))
-    start_supply, start_demand = supply[:], demand[:]
-    steps = []
-
-    while rows and cols:
-        row_pen = {i: _penalty([costs[i][j] for j in cols], key) for i in rows}
-        col_pen = {j: _penalty([costs[i][j] for i in rows], key) for j in cols}
-
-        # Candidates ordered by penalty (high), line min cost (low), rows
-        # before columns, then index, so ties resolve deterministically.
-        candidates = [
-            (-p, min(key(costs[i][j]) for j in cols), 0, i) for i, p in row_pen.items()
-        ] + [
-            (-p, min(key(costs[i][j]) for i in rows), 1, j) for j, p in col_pen.items()
-        ]
-        best = min(candidates)
-        _, _, is_col, idx = best
-        tied = sum(1 for c in candidates if c[0] == best[0])
-
-        if is_col:
-            i = min(rows, key=lambda r: (key(costs[r][idx]), r))
-            j = idx
-        else:
-            i = idx
-            j = min(cols, key=lambda c: (key(costs[idx][c]), c))
-
-        step = {
-            "active_rows": sorted(rows),
-            "active_cols": sorted(cols),
-            "row_penalties": {r: row_pen[r] for r in sorted(row_pen)},
-            "col_penalties": {c: col_pen[c] for c in sorted(col_pen)},
-            "supply_before": supply[:],
-            "demand_before": demand[:],
-            "max_penalty": -best[0],
-            "tied_lines": tied,
-            "line": ["column" if is_col else "row", idx],
-        }
-
-        qty = min(supply[i], demand[j])
-        allocation[i][j] = qty
-        supply[i] -= qty
-        demand[j] -= qty
-
-        # On a tie only one line is dropped, so the other stays with zero
-        # residual and still gets a (zero) basic cell: the degenerate case.
-        if math.isclose(supply[i], 0.0, abs_tol=1e-12):
-            rows.discard(i)
-            crossed = ["row", i]
-        else:
-            cols.discard(j)
-            crossed = ["column", j]
-
-        step.update(
-            {
-                "cell": [i, j],
-                "quantity": qty,
-                "crossed": crossed,
-                "supply_after": supply[:],
-                "demand_after": demand[:],
-            }
+    if total_supply > total_demand:
+        for row in costs:
+            row.append(0)
+        demand.append(total_supply - total_demand)
+        print(
+            f"\n* Problema desbalanceado: se agrega un DESTINO ficticio con demanda {total_supply - total_demand}"
         )
-        steps.append(step)
+    elif total_demand > total_supply:
+        costs.append([0] * len(demand))
+        supply.append(total_demand - total_supply)
+        print(
+            f"\n* Problema desbalanceado: se agrega un ORIGEN ficticio con oferta {total_demand - total_supply}"
+        )
+    else:
+        print("\n* El problema está balanceado.")
+
+    return costs, supply, demand
+
+
+def penalty(values):
+    """Difference between the two smallest costs."""
+    if len(values) >= 2:
+        a, b = sorted(values)[:2]
+        return b - a
+    return values[0] if values else 0
+
+
+def print_table(
+    costs,
+    allocation,
+    supply,
+    demand,
+    active_rows,
+    active_cols,
+    row_pen=None,
+    col_pen=None,
+):
+    m, n = len(costs), len(costs[0])
+    width = 11
+    header = " " * 6 + "".join(f"{'D' + str(j + 1):^{width}}" for j in range(n))
+    header += f"{'Oferta':^{width}}" + (f"{'Pen.':^7}" if row_pen else "")
+    print(header)
+    print("-" * len(header))
+
+    for i in range(m):
+        line = f"{'O' + str(i + 1):<6}"
+        for j in range(n):
+            cell = f"{costs[i][j]}"
+            if allocation[i][j] is not None:
+                cell += f"[{allocation[i][j]}]"
+            line += f"{cell:^{width}}"
+        crossed = "" if i in active_rows else " X"
+        line += f"{str(supply[i]) + crossed:^{width}}"
+        if row_pen:
+            line += f"{row_pen.get(i, '-')!s:^7}"
+        print(line)
+
+    print("-" * len(header))
+    line = f"{'Dem.':<6}" + "".join(
+        f"{str(demand[j]) + ('' if j in active_cols else ' X'):^{width}}"
+        for j in range(n)
+    )
+    print(line)
+    if col_pen:
+        print(
+            f"{'Pen.':<6}"
+            + "".join(f"{col_pen.get(j, '-')!s:^{width}}" for j in range(n))
+        )
+
+
+def solve_vogel(costs, supply, demand, show_steps=True):
+    costs, supply, demand = balance(costs, supply, demand)
+    m, n = len(costs), len(costs[0])
+    remaining_supply, remaining_demand = supply[:], demand[:]
+    allocation = [[None] * n for _ in range(m)]
+    active_rows, active_cols = set(range(m)), set(range(n))
+    iteration = 0
+
+    def assign(i, j):
+        quantity = min(remaining_supply[i], remaining_demand[j])
+        allocation[i][j] = quantity
+        remaining_supply[i] -= quantity
+        remaining_demand[j] -= quantity
+        return quantity
+
+    while len(active_rows) > 1 and len(active_cols) > 1:
+        iteration += 1
+
+        # 1. Penalties per row and per column
+        row_pen = {i: penalty([costs[i][j] for j in active_cols]) for i in active_rows}
+        col_pen = {j: penalty([costs[i][j] for i in active_rows]) for j in active_cols}
+
+        if show_steps:
+            print(f"\n================ ITERACIÓN {iteration} ================")
+            print_table(
+                costs,
+                allocation,
+                remaining_supply,
+                remaining_demand,
+                active_rows,
+                active_cols,
+                row_pen,
+                col_pen,
+            )
+
+        # 2. Highest penalty (tie-break: lowest cost, then largest assignable quantity)
+        candidates = []
+        for i, p in row_pen.items():
+            j = min(active_cols, key=lambda c: costs[i][c])
+            candidates.append(
+                (
+                    p,
+                    -costs[i][j],
+                    min(remaining_supply[i], remaining_demand[j]),
+                    "row",
+                    i,
+                    j,
+                )
+            )
+        for j, p in col_pen.items():
+            i = min(active_rows, key=lambda r: costs[r][j])
+            candidates.append(
+                (
+                    p,
+                    -costs[i][j],
+                    min(remaining_supply[i], remaining_demand[j]),
+                    "column",
+                    i,
+                    j,
+                )
+            )
+
+        p, _, _, kind, i, j = max(candidates, key=lambda c: (c[0], c[1], c[2]))
+
+        # 3. Assign in the lowest-cost cell of that row/column
+        quantity = assign(i, j)
+        if show_steps:
+            idx = i + 1 if kind == "row" else j + 1
+            label = "fila" if kind == "row" else "columna"
+            print(
+                f"\n-> Mayor penalización: {p} ({label} {'O' if kind == 'row' else 'D'}{idx})"
+            )
+            print(
+                f"-> Se asignan {quantity} unidades a la celda (O{i + 1}, D{j + 1}) con costo {costs[i][j]}"
+            )
+
+        # 4. Cross out a row or column (only one if both hit zero -> degeneracy)
+        if remaining_supply[i] == 0 and remaining_demand[j] == 0:
+            active_rows.discard(i)
+            if show_steps:
+                print(
+                    f"-> Oferta y demanda en cero a la vez (degeneración): se tacha solo la fila O{i + 1}"
+                )
+        elif remaining_supply[i] == 0:
+            active_rows.discard(i)
+        else:
+            active_cols.discard(j)
+
+    # 5. A single row or column is left: assign everything that remains
+    if active_rows and active_cols:
+        if show_steps:
+            print(
+                "\n========= ÚLTIMA ETAPA: asignación directa de lo restante ========="
+            )
+        for i in sorted(active_rows):
+            for j in sorted(active_cols, key=lambda c: costs[i][c]):
+                if allocation[i][j] is None:
+                    quantity = assign(i, j)
+                    if show_steps:
+                        print(
+                            f"-> Se asignan {quantity} unidades a (O{i + 1}, D{j + 1}) con costo {costs[i][j]}"
+                        )
 
     total_cost = sum(
-        allocation[i][j] * costs[i][j] for i in range(n_rows) for j in range(n_cols)
+        costs[i][j] * allocation[i][j]
+        for i in range(m)
+        for j in range(n)
+        if allocation[i][j]
     )
-    return {
-        "allocation": allocation,
-        "total_cost": total_cost,
-        "steps": steps,
-        "dummy": dummy,
-        "maximize": maximize,
-        "costs": costs,
-        "supply": start_supply,
-        "demand": start_demand,
-    }
+
+    return costs, supply, demand, allocation, total_cost
 
 
-def _labels(result):
-    n_rows, n_cols = len(result["supply"]), len(result["demand"])
-    rows = [f"S{i + 1}" for i in range(n_rows)]
-    cols = [f"D{j + 1}" for j in range(n_cols)]
-    if result["dummy"] == "row":
-        rows[-1] = "Dummy"
-    elif result["dummy"] == "column":
-        cols[-1] = "Dummy"
-    return rows, cols
+def print_result(costs, supply, demand, allocation, total_cost):
+    m, n = len(costs), len(costs[0])
+    print("\n================ SOLUCIÓN INICIAL (VOGEL) ================")
+    print("Formato de celda: costo[cantidad asignada]\n")
+    print_table(costs, allocation, supply, demand, set(range(m)), set(range(n)))
+
+    print("\nAsignaciones:")
+    terms = []
+    for i in range(m):
+        for j in range(n):
+            if allocation[i][j] is not None:
+                print(
+                    f"  X{i + 1}{j + 1} = {allocation[i][j]:>5}   (costo unitario {costs[i][j]})"
+                )
+                if allocation[i][j]:
+                    terms.append(f"{costs[i][j]}*{allocation[i][j]}")
+
+    basic = sum(1 for row in allocation for x in row if x is not None)
+    print(f"\nVariables básicas: {basic}  (m + n - 1 = {m + n - 1})")
+    if basic < m + n - 1:
+        print("  Aviso: la solución es degenerada.")
+    print(f"\nCosto total Z = {' + '.join(terms)}")
+    print(f"Costo total Z = {total_cost}")
 
 
-def _print_step(n, step, result, row_names, col_names):
-    w = 8
-    costs = result["costs"]
-    print(f"  Step {n}")
-    header = "".ljust(w) + "".join(col_names[j].rjust(w) for j in step["active_cols"])
-    print("    " + header + "Supply".rjust(w) + "Penalty".rjust(w))
-    for i in step["active_rows"]:
-        cells = "".join(f"{costs[i][j]:g}".rjust(w) for j in step["active_cols"])
-        print(
-            "    "
-            + row_names[i].ljust(w)
-            + cells
-            + f"{step['supply_before'][i]:g}".rjust(w)
-            + f"{step['row_penalties'][i]:g}".rjust(w)
-        )
+DEFAULT_CONTEXT = "Problema de transporte sin descripción."
+EXAMPLE_CONTEXT = (
+    "Una empresa tiene 3 fábricas y debe distribuir productos a 4 almacenes, "
+    "buscando minimizar los costos de transporte."
+)
+
+
+def parse_number(text):
+    """Return a finite, non-negative number (int when possible) or raise ValueError."""
+    value = float(text)
+    if not math.isfinite(value) or value < 0:
+        raise ValueError
+    return int(value) if value.is_integer() else value
+
+
+def ask_context():
+    print("\nDescriba brevemente el problema (puede dejarlo vacío).")
     print(
-        "    "
-        + "Demand".ljust(w)
-        + "".join(f"{step['demand_before'][j]:g}".rjust(w) for j in step["active_cols"])
+        "Ej: Una empresa tiene 3 fábricas y debe distribuir productos a 3 almacenes,"
+        " buscando minimizar los costos de transporte."
     )
-    print(
-        "    "
-        + "Penalty".ljust(w)
-        + "".join(f"{step['col_penalties'][j]:g}".rjust(w) for j in step["active_cols"])
-    )
-
-    kind, idx = step["line"]
-    names = row_names if kind == "row" else col_names
-    i, j = step["cell"]
-    best, value = ("highest", "profit") if result["maximize"] else ("lowest", "cost")
-    line = f"    Highest penalty: {step['max_penalty']:g} ({kind} {names[idx]})."
-    if step["tied_lines"] > 1:
-        line += (
-            f" Tie among {step['tied_lines']} lines: chose the one with the {best}"
-            f" {value}, then rows before columns, then the first index."
-        )
-    print(line)
-    print(
-        f"    {best.capitalize()} {value} in that {kind}:"
-        f" cell ({row_names[i]}, {col_names[j]}) = {result['costs'][i][j]:g}"
-    )
-    print(
-        f"    Assign min({step['supply_before'][i]:g}, {step['demand_before'][j]:g})"
-        f" = {step['quantity']:g} to ({row_names[i]}, {col_names[j]})"
-    )
-    ckind, cidx = step["crossed"]
-    cname = (row_names if ckind == "row" else col_names)[cidx]
-    reason = "supply exhausted" if ckind == "row" else "demand covered"
-    print(f"    Crossed out: {ckind} {cname} ({reason})")
-    left_s = ", ".join(
-        f"{row_names[r]}={step['supply_after'][r]:g}" for r in step["active_rows"]
-    )
-    left_d = ", ".join(
-        f"{col_names[c]}={step['demand_after'][c]:g}" for c in step["active_cols"]
-    )
-    print(f"    Remaining supply: {left_s} | demand: {left_d}\n")
+    return input("Problema: ").strip() or DEFAULT_CONTEXT
 
 
-def _print_result(title, result):
-    row_names, col_names = _labels(result)
-    print(title)
-    if result["dummy"]:
-        total_s, total_d = sum(result["supply"]), sum(result["demand"])
-        print(
-            f"  Unbalanced problem: added a dummy {result['dummy']} with all values 0"
-            f" (supply and demand now both {max(total_s, total_d):g})."
-        )
-    print()
-    for n, step in enumerate(result["steps"], 1):
-        _print_step(n, step, result, row_names, col_names)
-    print("  Final allocation")
-    print("    " + "".ljust(8) + "".join(c.rjust(8) for c in col_names))
-    for name, row in zip(row_names, result["allocation"]):
-        print("    " + name.ljust(8) + "".join(f"{q:g}".rjust(8) for q in row))
-    label = "profit" if result["maximize"] else "cost"
-    print(f"  Total {label}: {result['total_cost']:g}\n")
-
-
-def _ask_number(prompt, kind=float, minimum=0):
+def ask_int(prompt, minimum=1):
     while True:
         try:
-            value = kind(input(prompt).strip())
+            value = int(input(prompt).strip())
         except ValueError:
-            print("  invalid number, try again")
+            print("  Valor inválido: ingrese un número entero.")
             continue
         if value < minimum:
-            print(f"  must be >= {minimum:g}")
+            print(f"  El valor debe ser mayor o igual a {minimum}.")
             continue
         return value
 
 
-def _ask_list(prompt, length):
+def ask_numbers(prompt, length):
     while True:
         try:
-            values = [float(x) for x in input(prompt).replace(",", " ").split()]
+            values = [parse_number(x) for x in input(prompt).replace(",", " ").split()]
         except ValueError:
-            print("  invalid number, try again")
+            print("  Valor inválido: use solo números finitos mayores o iguales a 0.")
             continue
         if len(values) != length:
-            print(f"  expected {length} values, got {len(values)}")
-        elif not all(math.isfinite(v) and v >= 0 for v in values):
-            print("  values must be finite numbers >= 0")
-        else:
-            return values
+            print(f"  Debe ingresar {length} valores y ingresó {len(values)}.")
+            continue
+        return values
 
 
-def _ask_objective():
-    while True:
-        print("  1. Minimize (costs)")
-        print("  2. Maximize (profits)")
-        choice = input("Objective: ").strip()
-        if choice in ("1", "2"):
-            return choice == "2"
-        print("  invalid option\n")
+def read_input():
+    context = ask_context()
+    m = ask_int("\nNúmero de orígenes (filas): ")
+    n = ask_int("Número de destinos (columnas): ")
+    print("\nIngrese la matriz de costos, una fila por línea, separada por espacios:")
+    costs = [ask_numbers(f"  O{i + 1}: ", n) for i in range(m)]
+    supply = ask_numbers(f"\nOferta de los {m} orígenes: ", m)
+    demand = ask_numbers(f"Demanda de los {n} destinos: ", n)
+    return context, costs, supply, demand
 
 
-def _solve_user_problem():
-    maximize = _ask_objective()
-    word = "Profits" if maximize else "Costs"
-    n_rows = _ask_number("Number of sources (rows): ", int, 1)
-    n_cols = _ask_number("Number of destinations (columns): ", int, 1)
-    supply = _ask_list(f"Supply ({n_rows} values): ", n_rows)
-    demand = _ask_list(f"Demand ({n_cols} values): ", n_cols)
-    costs = [
-        _ask_list(f"{word} of source {i + 1} ({n_cols} values): ", n_cols)
-        for i in range(n_rows)
-    ]
-    _print_result("Solution", solve_vogel(costs, supply, demand, maximize))
-
-
-def _run_examples():
-    _print_result(
-        "Balanced",
-        solve_vogel(
-            [[19, 30, 50, 10], [70, 30, 40, 60], [40, 8, 70, 20]],
-            [7, 9, 18],
-            [5, 8, 7, 14],
-        ),
+def print_interpretation(context, m, n, costs, allocation, total_cost):
+    """Fixed-template reading of the result; only sizes and numbers change."""
+    print("\n================ INTERPRETACIÓN ================")
+    print(f"Problema: {context}")
+    print(
+        f"\nCon {m} orígenes y {n} destinos, la mejor distribución inicial"
+        " encontrada es:"
     )
-    _print_result(
-        "Unbalanced (excess supply)",
-        solve_vogel([[4, 6, 8], [5, 3, 7]], [30, 40], [20, 15, 10]),
-    )
-    _print_result(
-        "Degenerate",
-        solve_vogel([[2, 3], [4, 1]], [10, 10], [10, 10]),
-    )
-    _print_result(
-        "Maximization (profits)",
-        solve_vogel(
-            [[19, 30, 50, 10], [70, 30, 40, 60], [40, 8, 70, 20]],
-            [7, 9, 18],
-            [5, 8, 7, 14],
-            maximize=True,
-        ),
-    )
+    for i in range(m):
+        for j in range(n):
+            if allocation[i][j]:
+                print(
+                    f"  - El origen O{i + 1} envía {allocation[i][j]} unidades al destino D{j + 1}"
+                )
+
+    if len(allocation[0]) > n:
+        unsent = sum(allocation[i][n] or 0 for i in range(m))
+        if unsent:
+            print(
+                f"\nSobra oferta: {unsent} unidades quedan sin enviar (destino ficticio)."
+            )
+    if len(allocation) > m:
+        unmet = sum(x or 0 for x in allocation[m])
+        if unmet:
+            print(
+                f"\nFalta oferta: {unmet} unidades de demanda no se cubren (origen ficticio)."
+            )
+
+    print(f"\nEl costo total de transporte de esta solución inicial es {total_cost}.")
+    print("Nota: es una solución inicial factible; no necesariamente es la óptima.")
 
 
 def main():
+    print("MÉTODO DE APROXIMACIÓN DE VOGEL")
+    print("1. Usar ejemplo")
+    print("2. Ingresar datos propios")
     try:
-        _menu()
-    except (EOFError, KeyboardInterrupt):
-        print()
+        option = input("Opción: ").strip()
 
-
-def _menu():
-    while True:
-        print("Vogel approximation method")
-        print("  1. Examples")
-        print("  2. Solve an exercise")
-        print("  0. Exit")
-        choice = input("Option: ").strip()
-        if choice == "1":
-            _run_examples()
-        elif choice == "2":
-            _solve_user_problem()
-        elif choice == "0":
-            return
+        if option == "2":
+            context, costs, supply, demand = read_input()
         else:
-            print("  invalid option\n")
+            context = EXAMPLE_CONTEXT
+            costs = [
+                [19, 30, 50, 10],
+                [70, 30, 40, 60],
+                [40, 8, 70, 20],
+            ]
+            supply = [7, 9, 18]
+            demand = [5, 8, 7, 14]
+    except (EOFError, KeyboardInterrupt):
+        print("\n\nEntrada cancelada. Fin del programa.")
+        return
+
+    print(f"\nProblema: {context}")
+    result = solve_vogel(costs, supply, demand)
+    print_result(*result)
+    print_interpretation(
+        context, len(costs), len(costs[0]), result[0], result[3], result[4]
+    )
 
 
 if __name__ == "__main__":
