@@ -25,9 +25,13 @@ class Problem:
         self.cons = []
         for i, (a, t, b) in enumerate(cons, 1):
             if len(a) != self.n:
-                raise ValueError(f"La restricción {i} debe tener {self.n} coeficientes.")
+                raise ValueError(
+                    f"La restricción {i} debe tener {self.n} coeficientes."
+                )
             if t not in CON_TYPES:
-                raise ValueError(f"Tipo inválido en la restricción {i}: use <=, >= o =.")
+                raise ValueError(
+                    f"Tipo inválido en la restricción {i}: use <=, >= o =."
+                )
             self.cons.append(([Fraction(v) for v in a], t, Fraction(b)))
         self.signs = list(signs)
         if len(self.signs) != self.n or any(s not in SIGNS for s in self.signs):

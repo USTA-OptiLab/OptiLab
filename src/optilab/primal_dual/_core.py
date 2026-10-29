@@ -40,7 +40,11 @@ def _primal(T, obj, basis, allowed):
         for i in range(len(T)):
             if T[i][j] > 0:
                 ratio = T[i][-1] / T[i][j]
-                if best is None or ratio < best[0] or (ratio == best[0] and basis[i] < basis[best[1]]):
+                if (
+                    best is None
+                    or ratio < best[0]
+                    or (ratio == best[0] and basis[i] < basis[best[1]])
+                ):
                     best = (ratio, i)
         if best is None:
             return "unbounded"
@@ -215,4 +219,10 @@ def build_dual(p):
     for j in range(n):
         col = [p.cons[i][0][j] for i in range(m)]
         cons.append((col, csign[p.signs[j]], p.c[j]))
-    return Problem(dsense, [b for _, _, b in p.cons], cons, signs, names=[f"y{i + 1}" for i in range(m)])
+    return Problem(
+        dsense,
+        [b for _, _, b in p.cons],
+        cons,
+        signs,
+        names=[f"y{i + 1}" for i in range(m)],
+    )

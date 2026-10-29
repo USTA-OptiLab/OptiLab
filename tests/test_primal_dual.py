@@ -45,10 +45,18 @@ def test_ej9_dual_values():
 
 
 def test_ej8_fractions():
-    p = lp("min", [6, 8, 5], [([2, 1, 1], ">=", 10), ([1, 3, 1], ">=", 12), ([1, 1, 2], ">=", 8)])
+    p = lp(
+        "min",
+        [6, 8, 5],
+        [([2, 1, 1], ">=", 10), ([1, 3, 1], ">=", 12), ([1, 1, 2], ">=", 8)],
+    )
     out = solve(p, verify=True)
     assert z_of(out) == Fraction(316, 7)
-    assert out["primal_result"]["x"] == [Fraction(22, 7), Fraction(18, 7), Fraction(8, 7)]
+    assert out["primal_result"]["x"] == [
+        Fraction(22, 7),
+        Fraction(18, 7),
+        Fraction(8, 7),
+    ]
 
 
 def test_ej4_equality_free_dual():
@@ -87,7 +95,10 @@ def payload(**kw):
     base = {
         "sense": "max",
         "c": ["4", "3"],
-        "cons": [{"a": ["2", "1"], "type": "<=", "b": "10"}, {"a": ["1", "2"], "type": "<=", "b": "8"}],
+        "cons": [
+            {"a": ["2", "1"], "type": "<=", "b": "10"},
+            {"a": ["1", "2"], "type": "<=", "b": "8"},
+        ],
         "signs": [">=0", ">=0"],
     }
     return {**base, **kw}
