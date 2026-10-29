@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+/* The app is always dark: tell the browser so native widgets (select popups,
+   scrollbars, form controls) don't render light-on-light. */
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  select option {
+    background-color: var(--color-neutral-900);
+    color: var(--color-neutral-100);
+  }
+}
