@@ -6,6 +6,7 @@ import GraphicMethod from './graphic-method/GraphicMethod.vue'
 import PrimalDualView from './primal-dual/PrimalDualView.vue'
 import ModiMethod from './modi-method/ModiMethod.vue'
 import SimplexMethod from './simplex-method/SimplexMethod.vue'
+import VogelMethod from './vogel-method/VogelMethod.vue'
 
 // Cada método nuevo se agrega aquí para que aparezca en el menú
 const methods = [
@@ -44,6 +45,12 @@ const methods = [
     name: 'Método MODI',
     description: 'Problema de transporte: solución inicial, iteraciones MODI, análisis de sensibilidad y comparación de métodos.',
     component: ModiMethod,
+  },
+  {
+    id: 'vogel',
+    name: 'Método de Vogel',
+    description: 'Problema de transporte: aproximación de Vogel con penalizaciones, contexto de negocio e interpretación de resultados.',
+    component: VogelMethod,
   },
 ]
 

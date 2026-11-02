@@ -11,6 +11,7 @@ from optilab import gran_m_method, graphic_method, primal_dual, simplex, two_pha
 from optilab.modi_method import analisis, modi, reporte
 from optilab.modi_method.opciones import Opciones
 from optilab.modi_method.problema import ProblemaTransporte
+from optilab.vogel_method import solve_vogel
 
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 DIST_INDEX = FRONTEND_DIR / "dist" / "index.html"
@@ -227,6 +228,26 @@ class Api:
         except (ValueError, RuntimeError, OSError) as e:
             return {"error": str(e)}
         return {"ruta": ruta}
+
+    def solve_vogel(self, problem):
+        """Run Vogel's approximation; return JSON-safe values through pywebview."""
+        try:
+            if not isinstance(problem, dict):
+                raise TypeError(
+                    "El problema debe ser un objeto con costos, oferta y demanda."
+                )
+            if not isinstance(problem.get("maximize", False), bool):
+                raise TypeError("El objetivo debe ser minimización o maximización.")
+            result = solve_vogel(
+                problem["costs"],
+                problem["supply"],
+                problem["demand"],
+                maximize=problem.get("maximize", False),
+                context=problem.get("context", ""),
+            )
+            return {"status": "success", "result": result}
+        except (KeyError, TypeError, ValueError, OverflowError) as exc:
+            return {"status": "error", "message": str(exc)}
 
 
 def main():
