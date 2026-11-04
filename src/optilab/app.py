@@ -6,8 +6,7 @@ import numpy as np
 import webview
 from scipy import stats
 
-from optilab import gran_m_method
-from optilab import doubolfeis_metod
+from optilab import gran_m_method, two_phase
 
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 DIST_INDEX = FRONTEND_DIR / "dist" / "index.html"
@@ -37,7 +36,7 @@ class Api:
 
     def two_phase(self, problem):
         try:
-            return doubolfeis_metod.solve(problem)
+            return two_phase.solve(problem)
         except (KeyError, ValueError, ZeroDivisionError, RuntimeError) as exc:
             return {"status": "error", "message": str(exc)}
 

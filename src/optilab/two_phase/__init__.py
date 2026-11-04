@@ -1,5 +1,5 @@
 """Método de las Dos Fases para programación lineal."""
 
-from optilab.doubolfeis_metod.solver import solve
+from optilab.two_phase.solver import solve
 
 __all__ = ["solve"]
