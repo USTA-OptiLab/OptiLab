@@ -5,6 +5,8 @@ import numpy as np
 import webview
 from scipy import stats
 
+from optilab import gran_m_method
+
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 DIST_INDEX = FRONTEND_DIR / "dist" / "index.html"
 DEV_SERVER_URL = "http://localhost:5173"
@@ -18,6 +20,18 @@ class Api:
             "std": float(np.std(data)),
             "zscores": stats.zscore(data).tolist(),
         }
+
+    def gran_m(self, problem):
+        try:
+            return gran_m_method.solve(problem)
+        except (
+            KeyError,
+            TypeError,
+            ValueError,
+            ZeroDivisionError,
+            RuntimeError,
+        ) as exc:
+            return {"status": "error", "message": str(exc)}
 
 
 def main():
