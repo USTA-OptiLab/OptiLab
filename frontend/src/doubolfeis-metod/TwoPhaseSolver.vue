@@ -46,7 +46,7 @@ function removeConstraint(i) {
 function bridge() {
   if (window.pywebview?.api) return Promise.resolve(window.pywebview.api)
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('El backend de Python (pywebview) no está disponible.')), 3000)
+    const timer = setTimeout(() => reject(new Error('El motor de cálculo de Python (pywebview) no está disponible.')), 3000)
     window.addEventListener('pywebviewready', () => {
       clearTimeout(timer)
       resolve(window.pywebview.api)
@@ -119,7 +119,7 @@ const interpretation = computed(() => {
   const slack = [], active = []
   model.constraints.forEach((con, i) => {
     const name = `S${sub(i + 1)}`
-    // El backend invierte el sentido de las restricciones con K negativo
+    // El código de Python invierte el sentido de las restricciones con K negativo
     const type = String(con.rhs).trim().startsWith('-') ? { '<=': '>=', '>=': '<=', '=': '=' }[con.type] : con.type
     const value = res.solution[name]
     if (type === '=' || value === undefined) return

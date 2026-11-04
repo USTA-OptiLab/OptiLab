@@ -23,7 +23,7 @@ def _sub(i):
 
 
 def _frac(value):
-    # str() first so JS floats like 0.1 become 1/10, not their binary expansion
+    # Primero str() para que un float de JS como 0.1 sea 1/10 y no su expansión binaria
     return Fraction(str(value).strip())
 
 
@@ -41,7 +41,9 @@ class TwoPhaseSolver:
     def __init__(self, problem):
         self.sense = problem.get("sense", "max").lower()
         if self.sense not in ("max", "min"):
-            raise ValueError("sense debe ser 'max' o 'min'")
+            raise ValueError(
+                "El sentido de optimización (sense) debe ser 'max' o 'min'"
+            )
 
         self.c = [_frac(v) for v in problem["objective"]]
         n = len(self.c)
@@ -55,7 +57,7 @@ class TwoPhaseSolver:
         self.m = len(constraints)
         self.steps = []
 
-        # Columnas: x₁..xₙ, S₁..Sₘ (una por restricción, como en el curso), A's
+        # Columnas: x₁..xₙ, S₁..Sₘ (una por restricción, como en el curso) y las A
         self.columns = [f"x{_sub(j + 1)}" for j in range(n)]
         self.columns += [f"S{_sub(i + 1)}" for i in range(self.m)]
         self.artificial_cols = []
