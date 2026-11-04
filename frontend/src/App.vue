@@ -1,7 +1,7 @@
 <script setup>
 import { shallowRef } from 'vue'
 import GranMMethod from './gran-m-method/GranMMethod.vue'
-import TwoPhaseSolver from './doubolfeis-metod/TwoPhaseSolver.vue'
+import TwoPhaseSolver from './two-phase/TwoPhaseSolver.vue'
 
 // Cada método nuevo se agrega aquí para que aparezca en el menú
 const methods = [

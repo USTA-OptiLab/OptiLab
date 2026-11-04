@@ -1,7 +1,7 @@
 import pytest
 
 from optilab.app import Api
-from optilab.doubolfeis_metod import solve
+from optilab.two_phase import solve
 
 WORKED_EXAMPLE = {
     "sense": "max",
