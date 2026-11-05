@@ -1,20 +1,17 @@
 <script setup>
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import ComparisonTable from './ComparisonTable.vue'
 import NetworkDiagram from './NetworkDiagram.vue'
 import OptionsPanel from './OptionsPanel.vue'
 import ProblemGrid from './ProblemGrid.vue'
 import ProcedureOptions from './ProcedureOptions.vue'
-import ReportView from './ReportView.vue'
+import PasosView from './PasosView.vue'
 import ResultBanner from './ResultBanner.vue'
 import SensitivityTable from './SensitivityTable.vue'
-import TableDiagram from './TableDiagram.vue'
+import { num } from '../format.js'
 
 const TAMANO_TEXTO_DEFECTO = 12
 const TAMANO_TEXTO_RANGO = [8, 22]
-
-const secondaryButtonClass =
-  'rounded-lg border border-neutral-700 px-3 py-2 text-xs font-medium text-neutral-300 transition hover:border-neutral-600 hover:text-white'
 
 const problema = ref({
   m: 3,
@@ -51,20 +48,23 @@ const resultado = ref(null)
 const sensibilidad = ref(null)
 const comparacion = ref(null)
 const vistaIteracion = ref(0)
-const pestana = ref('procedimiento')
+const pantalla = ref('datos') // 'datos' | 'resultado'
+const pestana = ref('pasos')
+// Opciones con las que se resolvió: la pantalla de resultado no debe cambiar si luego se editan.
+const opcionesRes = ref(null)
+let problemaRes = null
 const estado = ref('Listo. Edita los datos y pulsa Resolver.')
 const obsoleto = ref(false)
 const loading = ref(false)
 const tamanoTexto = ref(TAMANO_TEXTO_DEFECTO)
 
-const bannerEstilo = computed(() => {
-  if (obsoleto.value) return 'aviso'
-  if (!resultado.value) return 'info'
-  return resultado.value.optimo ? 'ok' : 'aviso'
+const estadoEsError = computed(() => /^(Error|No se pudo)/.test(estado.value))
+const etiquetaMedida = computed(() => (opcionesRes.value?.modo === 'maximizar' ? 'Ganancia' : 'Costo'))
+const mejoraTotal = computed(() => {
+  const r = resultado.value
+  if (!r) return 0
+  return opcionesRes.value.modo === 'maximizar' ? r.costo - r.costo_inicial : r.costo_inicial - r.costo
 })
-const bannerTexto = computed(() =>
-  obsoleto.value ? 'Los datos u opciones cambiaron: pulsa Resolver para actualizar el resultado' : estado.value,
-)
 
 let api = null
 function esperarApi() {
@@ -90,7 +90,7 @@ function manejarAtajos(e) {
   if (!(e.ctrlKey || e.metaKey)) return
   if (e.key === 'Enter') {
     e.preventDefault()
-    resolverProblema()
+    if (pantalla.value === 'datos') resolverProblema()
   } else if (e.key.toLowerCase() === 'o') {
     e.preventDefault()
     abrir()
@@ -108,6 +108,9 @@ function manejarAtajos(e) {
     cambiarZoom(0)
   }
 }
+
+// El tamaño del texto escala con rem, así que basta cambiar el tamaño raíz.
+watch(tamanoTexto, (t) => (document.documentElement.style.fontSize = `${(t / TAMANO_TEXTO_DEFECTO) * 16}px`))
 
 onMounted(async () => {
   window.addEventListener('keydown', manejarAtajos)
@@ -137,13 +140,19 @@ async function resolverProblema() {
   obsoleto.value = false
   loading.value = true
   try {
-    const r = await api.resolver(clonarPlano(problema.value), { ...opciones })
+    const opcionesUsadas = { ...opciones }
+    const r = await api.resolver(clonarPlano(problema.value), opcionesUsadas)
     if (r.error) {
       estado.value = `Error: ${r.error}`
       resultado.value = null
       return
     }
     resultado.value = { ...r, problema: conDimensiones(r.problema) }
+    opcionesRes.value = opcionesUsadas
+    problemaRes = clonarPlano(problema.value)
+    pantalla.value = 'resultado'
+    pestana.value = 'pasos'
+    window.scrollTo(0, 0)
     vistaIteracion.value = 0
     sensibilidad.value = null
     comparacion.value = null
@@ -157,11 +166,11 @@ async function resolverProblema() {
 }
 
 async function cargarSensibilidad() {
-  sensibilidad.value = await api.sensibilidad(clonarPlano(problema.value), { ...opciones })
+  sensibilidad.value = await api.sensibilidad(problemaRes, opcionesRes.value)
 }
 
 async function cargarComparacion() {
-  comparacion.value = await api.comparar(clonarPlano(problema.value), { ...opciones })
+  comparacion.value = await api.comparar(problemaRes, opcionesRes.value)
 }
 
 async function abrir() {
@@ -173,6 +182,7 @@ async function abrir() {
   }
   problema.value = conDimensiones(r.problema)
   resultado.value = null
+  pantalla.value = 'datos'
   estado.value = `Abierto: ${r.ruta}`
 }
 
@@ -193,8 +203,7 @@ async function exportar() {
 }
 
 const PESTANAS = [
-  { id: 'procedimiento', texto: 'Procedimiento' },
-  { id: 'tabla', texto: 'Tabla' },
+  { id: 'pasos', texto: 'Paso a paso' },
   { id: 'red', texto: 'Red' },
   { id: 'sensibilidad', texto: 'Sensibilidad' },
   { id: 'comparar', texto: 'Comparar métodos' },
@@ -202,90 +211,44 @@ const PESTANAS = [
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-950 text-neutral-100">
-    <header class="border-b border-neutral-800 bg-neutral-950/90">
-      <div
-        class="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8"
-      >
-        <div class="flex items-center gap-3">
-          <div
-            class="grid h-10 w-10 place-items-center rounded-xl bg-indigo-500/15 ring-1 ring-inset ring-indigo-500/30"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              class="h-5 w-5 text-indigo-300"
-            >
-              <circle cx="5" cy="6" r="2" />
-              <circle cx="5" cy="18" r="2" />
-              <circle cx="19" cy="12" r="2" />
-              <path d="M7 6.8 17 11M7 17.2 17 12.8" stroke-linecap="round" />
-            </svg>
-          </div>
-          <div>
-            <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-indigo-300">
-              OptiLab
-            </p>
-            <h1 class="text-xl font-semibold tracking-tight">Método MODI</h1>
-          </div>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <span
-            class="rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 text-xs text-neutral-400"
-          >
-            Problema de transporte · distribución modificada
-          </span>
-          <span class="text-[11px] text-neutral-500">
-            Ctrl+Enter resolver · Ctrl+O abrir · Ctrl+S guardar · Ctrl +/− tamaño del texto
-          </span>
-        </div>
-      </div>
+  <div class="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-4 bg-neutral-950 p-4 text-neutral-100">
+    <header class="flex flex-wrap items-baseline justify-between gap-x-4">
+      <h1 class="text-xl font-semibold">OptiLab <span class="font-normal text-neutral-400">— Método MODI</span></h1>
+      <p class="text-xs text-neutral-500">Ctrl+Enter resolver · Ctrl+O abrir · Ctrl+S guardar · Ctrl +/− tamaño del texto</p>
     </header>
 
-    <main
-      class="mx-auto grid max-w-[1600px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[fit-content(560px)_minmax(0,1fr)] lg:px-8"
-    >
-      <aside class="flex flex-col gap-4 lg:sticky lg:top-6 lg:max-h-[calc(100vh-7rem)] lg:self-start">
-        <div class="flex-1 space-y-4 pr-1 lg:overflow-y-auto">
-          <section
-            class="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-4 shadow-lg shadow-black/20"
-          >
-            <h2 class="text-sm font-semibold text-neutral-100">Problema</h2>
-            <div class="mt-3">
-              <ProblemGrid ref="grilla" v-model="problema" @change="marcarObsoleto" />
-            </div>
-            <div class="mt-3 grid grid-cols-3 gap-2">
-              <button type="button" :class="secondaryButtonClass" @click="abrir">Abrir…</button>
-              <button type="button" :class="secondaryButtonClass" @click="guardar">Guardar…</button>
-              <button type="button" :class="secondaryButtonClass" @click="cargarEjemplo">Ejemplo</button>
-            </div>
-          </section>
+    <!-- Pantalla 1: datos y opciones -->
+    <main v-if="pantalla === 'datos'" class="flex flex-1 flex-col gap-4">
+      <ResultBanner :estilo="estadoEsError ? 'aviso' : 'info'" :texto="obsoleto ? 'Los datos u opciones cambiaron desde el último resultado' : estado" />
 
-          <section
-            class="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-4 shadow-lg shadow-black/20"
-          >
-            <h2 class="text-sm font-semibold text-neutral-100">Método</h2>
-            <div class="mt-3">
-              <OptionsPanel v-model="opciones" />
-            </div>
-          </section>
+      <div class="grid gap-4 lg:grid-cols-[1fr_22rem]">
+        <section class="space-y-3 rounded-xl border border-neutral-800 bg-neutral-900/40 p-4">
+          <h2 class="font-semibold text-neutral-200">1. Problema</h2>
+          <ProblemGrid ref="grilla" v-model="problema" @change="marcarObsoleto" />
+          <div class="flex flex-wrap gap-2 pt-1 text-sm">
+            <button type="button" class="rounded border border-neutral-700 px-3 py-1 hover:bg-neutral-800" @click="abrir">Abrir…</button>
+            <button type="button" class="rounded border border-neutral-700 px-3 py-1 hover:bg-neutral-800" @click="guardar">Guardar…</button>
+            <button type="button" class="rounded border border-neutral-700 px-3 py-1 hover:bg-neutral-800" @click="cargarEjemplo">Ejemplo</button>
+          </div>
+        </section>
 
-          <section
-            class="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-4 shadow-lg shadow-black/20"
-          >
-            <h2 class="text-sm font-semibold text-neutral-100">Procedimiento</h2>
-            <div class="mt-3">
-              <ProcedureOptions v-model="opciones" />
-            </div>
+        <div class="space-y-4">
+          <section class="space-y-2 rounded-xl border border-neutral-800 bg-neutral-900/40 p-4">
+            <h2 class="font-semibold text-neutral-200">2. Método</h2>
+            <OptionsPanel v-model="opciones" />
+          </section>
+          <section class="space-y-2 rounded-xl border border-neutral-800 bg-neutral-900/40 p-4">
+            <h2 class="font-semibold text-neutral-200">3. Procedimiento</h2>
+            <ProcedureOptions v-model="opciones" />
           </section>
         </div>
+      </div>
 
+      <div class="flex flex-wrap items-center gap-3">
         <button
-          type="submit"
+          type="button"
           :disabled="loading"
-          class="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-950/40 transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+          class="inline-flex min-w-64 flex-1 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 text-lg font-semibold hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
           @click="resolverProblema"
         >
           <svg v-if="loading" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -295,70 +258,71 @@ const PESTANAS = [
           {{ loading ? 'Resolviendo…' : 'Resolver' }}
           <span v-if="!loading" class="font-normal text-indigo-200">(Ctrl+Enter)</span>
         </button>
-      </aside>
+        <button
+          v-if="resultado" type="button"
+          class="rounded-lg border border-neutral-700 px-4 py-3 text-neutral-300 hover:bg-neutral-800"
+          @click="pantalla = 'resultado'"
+        >Ver último resultado →</button>
+      </div>
+    </main>
 
-      <section class="flex min-h-[70vh] flex-col lg:min-h-0">
-        <div class="mb-3 flex flex-wrap items-center gap-3 text-sm">
-          <label v-if="resultado" class="flex items-center gap-2">
-            Vista:
-            <select
-              v-model.number="vistaIteracion"
-              class="rounded-md border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm text-neutral-100 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-            >
-              <option v-for="(titulo, k) in resultado.titulos" :key="k" :value="k">{{ titulo }}</option>
-            </select>
-          </label>
-          <button type="button" class="ml-auto" :class="secondaryButtonClass" @click="exportar">
-            Exportar…
-          </button>
+    <!-- Pantalla 2: resultado y paso a paso -->
+    <main v-else-if="resultado" class="flex flex-1 flex-col gap-4">
+      <div class="flex flex-wrap items-center gap-3">
+        <button type="button" class="rounded-lg border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800" @click="pantalla = 'datos'">← Editar datos</button>
+        <h2 class="text-lg font-semibold">Resultado</h2>
+        <button type="button" class="ml-auto rounded-lg border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800" @click="exportar">Exportar…</button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div class="rounded-xl border border-neutral-800 bg-neutral-900/40 p-3">
+          <p class="text-xs text-neutral-500">{{ etiquetaMedida }} inicial</p>
+          <p class="text-2xl font-semibold">{{ num(resultado.costo_inicial, opcionesRes.decimales) }}</p>
         </div>
-
-        <ResultBanner :estilo="bannerEstilo" :texto="bannerTexto" />
-
-        <div class="my-3 flex flex-wrap gap-2">
-          <button
-            v-for="p in PESTANAS"
-            :key="p.id"
-            type="button"
-            class="rounded-lg border px-3 py-1.5 text-sm font-medium transition"
-            :class="
-              pestana === p.id
-                ? 'border-indigo-500 bg-indigo-500/15 text-indigo-200'
-                : 'border-neutral-700 text-neutral-400 hover:border-neutral-600 hover:text-neutral-200'
-            "
-            @click="pestana = p.id"
-          >
-            {{ p.texto }}
-          </button>
+        <div class="rounded-xl border border-indigo-700/60 bg-indigo-500/10 p-3">
+          <p class="text-xs text-indigo-300">{{ etiquetaMedida }} final</p>
+          <p class="text-2xl font-semibold text-indigo-100">{{ num(resultado.costo, opcionesRes.decimales) }}</p>
         </div>
+        <div class="rounded-xl border border-neutral-800 bg-neutral-900/40 p-3">
+          <p class="text-xs text-neutral-500">{{ opcionesRes.modo === 'maximizar' ? 'Mejora' : 'Ahorro' }}</p>
+          <p class="text-2xl font-semibold" :class="mejoraTotal > 0 ? 'text-emerald-300' : ''">{{ num(mejoraTotal, opcionesRes.decimales) }}</p>
+        </div>
+        <div class="rounded-xl border border-neutral-800 bg-neutral-900/40 p-3">
+          <p class="text-xs text-neutral-500">Iteraciones de mejora</p>
+          <p class="text-2xl font-semibold">{{ resultado.mejoras }}</p>
+        </div>
+      </div>
 
-        <section
-          class="flex-1 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/50 shadow-lg shadow-black/20"
-        >
-          <div class="h-full overflow-auto p-4">
-            <ReportView
-              v-if="pestana === 'procedimiento'"
-              :bloques="resultado?.bloques ?? []" :paso-a-paso="opciones.paso_a_paso" :tamano-texto="tamanoTexto"
-            />
-            <TableDiagram
-              v-else-if="pestana === 'tabla' && iteracionActual"
-              :problema="resultado.problema" :iteracion="iteracionActual" :decimales="opciones.decimales"
-              :titulo="resultado.titulos[vistaIteracion]"
-            />
-            <NetworkDiagram
-              v-else-if="pestana === 'red' && iteracionActual"
-              :problema="resultado.problema" :iteracion="iteracionActual" :decimales="opciones.decimales"
-              :titulo="resultado.titulos[vistaIteracion]"
-            />
-            <SensitivityTable
-              v-else-if="pestana === 'sensibilidad'"
-              :filas="sensibilidad?.filas ?? []" :decimales="opciones.decimales" :error="sensibilidad?.error ?? ''"
-            />
-            <ComparisonTable v-else-if="pestana === 'comparar'" :filas="comparacion?.filas ?? []" :decimales="opciones.decimales" />
-            <p v-else class="text-neutral-500">Resuelve un problema para ver esta vista.</p>
-          </div>
-        </section>
-      </section>
+      <div class="flex flex-wrap gap-1 border-b border-neutral-800 text-sm">
+        <button
+          v-for="p in PESTANAS" :key="p.id" type="button"
+          class="px-3 py-1.5"
+          :class="pestana === p.id ? 'border-b-2 border-indigo-500 text-indigo-300' : 'text-neutral-400 hover:text-neutral-200'"
+          @click="pestana = p.id"
+        >{{ p.texto }}</button>
+      </div>
+
+      <PasosView v-if="pestana === 'pasos'" :resultado="resultado" :opciones="opcionesRes" />
+
+      <template v-else-if="pestana === 'red'">
+        <label class="flex items-center gap-2 text-sm">
+          Vista:
+          <select v-model.number="vistaIteracion" class="rounded border border-neutral-700 bg-neutral-900 px-1 py-0.5">
+            <option v-for="(titulo, k) in resultado.titulos" :key="k" :value="k">{{ titulo }}</option>
+          </select>
+        </label>
+        <div class="h-[70vh]">
+          <NetworkDiagram
+            :problema="resultado.problema" :iteracion="iteracionActual" :decimales="opcionesRes.decimales"
+            :titulo="resultado.titulos[vistaIteracion]"
+          />
+        </div>
+      </template>
+      <SensitivityTable
+        v-else-if="pestana === 'sensibilidad'"
+        :filas="sensibilidad?.filas ?? []" :decimales="opcionesRes.decimales" :error="sensibilidad?.error ?? ''"
+      />
+      <ComparisonTable v-else-if="pestana === 'comparar'" :filas="comparacion?.filas ?? []" :decimales="opcionesRes.decimales" />
     </main>
   </div>
 </template>
