@@ -5,9 +5,16 @@ import TwoPhaseSolver from './two-phase/TwoPhaseSolver.vue'
 import GraphicMethod from './graphic-method/GraphicMethod.vue'
 import PrimalDualView from './primal-dual/PrimalDualView.vue'
 import ModiMethod from './modi-method/ModiMethod.vue'
+import SimplexMethod from './simplex-method/SimplexMethod.vue'
 
 // Cada método nuevo se agrega aquí para que aparezca en el menú
 const methods = [
+  {
+    id: 'simplex',
+    name: 'Método Simplex',
+    description: 'Programación lineal primal con tablas paso a paso, pivotes, análisis de sensibilidad y contexto de negocio.',
+    component: SimplexMethod,
+  },
   {
     id: 'gran-m',
     name: 'Método de la Gran M',
