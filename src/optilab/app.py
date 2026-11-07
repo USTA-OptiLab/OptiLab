@@ -7,7 +7,7 @@ import numpy as np
 import webview
 from scipy import stats
 
-from optilab import gran_m_method, graphic_method, primal_dual, two_phase
+from optilab import gran_m_method, graphic_method, primal_dual, simplex, two_phase
 from optilab.modi_method import analisis, modi, reporte
 from optilab.modi_method.opciones import Opciones
 from optilab.modi_method.problema import ProblemaTransporte
@@ -86,6 +86,27 @@ class Api:
             "std": float(np.std(data)),
             "zscores": stats.zscore(data).tolist(),
         }
+
+    def solve_simplex(self, problem):
+        try:
+            solver = simplex.SimplexSolver(
+                objective=problem.get("objective", "max"),
+                c=problem.get("c", []),
+                constraints=problem.get("constraints", []),
+                var_names=problem.get("var_names"),
+                var_bounds=problem.get("var_bounds"),
+                max_iterations=problem.get("max_iterations", 100),
+                context=problem.get("context"),
+            )
+            return solver.solve()
+        except (KeyError, ValueError, ZeroDivisionError, RuntimeError) as exc:
+            return {"status": "error", "message": str(exc)}
+
+    def analyze_context(self, text):
+        try:
+            return simplex.analyze_problem_context(text)
+        except Exception as exc:
+            return {"error": str(exc)}
 
     def gran_m(self, problem):
         try:
