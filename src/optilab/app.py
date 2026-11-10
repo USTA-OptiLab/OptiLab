@@ -105,7 +105,7 @@ class Api:
     def analyze_context(self, text):
         try:
             return simplex.analyze_problem_context(text)
-        except Exception as exc:
+        except (AttributeError, TypeError) as exc:
             return {"error": str(exc)}
 
     def gran_m(self, problem):
