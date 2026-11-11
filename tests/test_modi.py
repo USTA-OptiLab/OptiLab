@@ -56,6 +56,22 @@ def test_inicial_es_factible_y_basica(metodo):
     )
 
 
+def test_vogel_desempata_por_menor_costo_minimo():
+    # Iteración 3: empatan fila 3, columna 1 y columna 3 (penalización 2);
+    # gana la columna 1 por tener el menor costo mínimo (5).
+    costos = np.array([[5, 9, 6, 7], [8, 3, 8, 9], [7, 5, 9, 3]], float)
+    oferta = np.array([20, 30, 25], float)
+    demanda = np.array([15, 20, 25, 15], float)
+    x, _ = METODOS["vogel"](costos, oferta, demanda)
+    assert (x * costos).sum() == pytest.approx(380)
+    r = resolver(
+        ProblemaTransporte(costos.tolist(), oferta.tolist(), demanda.tolist()),
+        Opciones(metodo_inicial="vogel"),
+    )
+    assert r.optimo
+    assert r.costo == pytest.approx(370)
+
+
 def test_oferta_mayor_agrega_destino_ficticio():
     p = ProblemaTransporte([[4, 6], [5, 3]], [20, 30], [10, 25])
     r = resolver(p)

@@ -82,17 +82,16 @@ def vogel(costos, oferta, demanda, eps=1e-9):
         return valores[1] - valores[0] if len(valores) > 1 else 0.0
 
     while filas and cols:
-        mejor = None  # (penalización, es_columna, índice)
-        for i in sorted(filas):
-            p = penalizacion([costos[i, j] for j in cols])
-            if mejor is None or p > mejor[0]:
-                mejor = (p, False, i)
-        for j in sorted(cols):
-            p = penalizacion([costos[i, j] for i in filas])
-            if p > mejor[0]:
-                mejor = (p, True, j)
-
-        _, es_col, k = mejor
+        # Mayor penalización; en empate, la línea con el menor costo mínimo
+        # (y si persiste, filas antes que columnas y menor índice).
+        candidatos = [
+            (penalizacion(v := [costos[i, j] for j in cols]), -min(v), False, i)
+            for i in sorted(filas)
+        ] + [
+            (penalizacion(v := [costos[i, j] for i in filas]), -min(v), True, j)
+            for j in sorted(cols)
+        ]
+        _, _, es_col, k = max(candidatos, key=lambda c: (c[0], c[1]))
         if es_col:
             j = k
             i = min(sorted(filas), key=lambda r: costos[r, j])
