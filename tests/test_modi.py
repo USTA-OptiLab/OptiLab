@@ -72,6 +72,17 @@ def test_vogel_desempata_por_menor_costo_minimo():
     assert r.costo == pytest.approx(370)
 
 
+def test_vogel_desempata_por_mayor_cantidad():
+    # Iteración 1: fila 1 y columna 3 empatan en penalización (2) y costo (2);
+    # gana la columna 3 porque permite asignar más (20 frente a 10).
+    costos = np.array([[4, 2, 4], [5, 2, 2]], float)
+    oferta = np.array([20, 40], float)
+    demanda = np.array([30, 10, 20], float)
+    x, _ = METODOS["vogel"](costos, oferta, demanda)
+    assert x[1, 2] == pytest.approx(20)
+    assert (x * costos).sum() == pytest.approx(190)
+
+
 def test_oferta_mayor_agrega_destino_ficticio():
     p = ProblemaTransporte([[4, 6], [5, 3]], [20, 30], [10, 25])
     r = resolver(p)

@@ -82,22 +82,19 @@ def vogel(costos, oferta, demanda, eps=1e-9):
         return valores[1] - valores[0] if len(valores) > 1 else 0.0
 
     while filas and cols:
-        # Mayor penalización; en empate, la línea con el menor costo mínimo
-        # (y si persiste, filas antes que columnas y menor índice).
-        candidatos = [
-            (penalizacion(v := [costos[i, j] for j in cols]), -min(v), False, i)
-            for i in sorted(filas)
-        ] + [
-            (penalizacion(v := [costos[i, j] for i in filas]), -min(v), True, j)
-            for j in sorted(cols)
-        ]
-        _, _, es_col, k = max(candidatos, key=lambda c: (c[0], c[1]))
-        if es_col:
-            j = k
-            i = min(sorted(filas), key=lambda r: costos[r, j])
-        else:
-            i = k
+        # Cada línea propone su celda más barata. Gana la mayor penalización;
+        # en empate, el menor costo; luego la mayor cantidad asignable; y si
+        # persiste, filas antes que columnas y menor índice.
+        candidatos = []
+        for i in sorted(filas):
             j = min(sorted(cols), key=lambda c: costos[i, c])
+            p = penalizacion([costos[i, c] for c in cols])
+            candidatos.append((p, -costos[i, j], min(o[i], d[j]), i, j))
+        for j in sorted(cols):
+            i = min(sorted(filas), key=lambda r: costos[r, j])
+            p = penalizacion([costos[r, j] for r in filas])
+            candidatos.append((p, -costos[i, j], min(o[i], d[j]), i, j))
+        *_, i, j = max(candidatos, key=lambda c: c[:3])
 
         q = min(o[i], d[j])
         x[i, j] = q
