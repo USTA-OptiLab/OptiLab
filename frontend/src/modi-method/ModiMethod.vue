@@ -110,14 +110,19 @@ function manejarAtajos(e) {
 }
 
 // El tamaño del texto escala con rem, así que basta cambiar el tamaño raíz.
-watch(tamanoTexto, (t) => (document.documentElement.style.fontSize = `${(t / TAMANO_TEXTO_DEFECTO) * 16}px`))
+// Se aplica como multiplicador sobre la escala fluida de style.css (no un px fijo).
+watch(tamanoTexto, (t) => document.documentElement.style.setProperty('--text-zoom', t / TAMANO_TEXTO_DEFECTO))
 
 onMounted(async () => {
   window.addEventListener('keydown', manejarAtajos)
   api = await esperarApi()
   await cargarEjemplo()
 })
-onUnmounted(() => window.removeEventListener('keydown', manejarAtajos))
+onUnmounted(() => {
+  window.removeEventListener('keydown', manejarAtajos)
+  // El zoom de MODI no debe seguir aplicado al volver al inicio u otro método
+  document.documentElement.style.removeProperty('--text-zoom')
+})
 
 function marcarObsoleto() {
   if (resultado.value) obsoleto.value = true
@@ -211,7 +216,7 @@ const PESTANAS = [
 </script>
 
 <template>
-  <div class="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-4 bg-neutral-950 p-4 text-neutral-100">
+  <div class="mx-auto flex min-h-screen w-full max-w-app flex-col gap-4 bg-neutral-950 px-gutter py-4 text-neutral-100">
     <header class="flex flex-wrap items-baseline justify-between gap-x-4">
       <h1 class="text-xl font-semibold">Método MODI</h1>
       <p class="text-xs text-neutral-500">Ctrl+Enter resolver · Ctrl+O abrir · Ctrl+S guardar · Ctrl +/− tamaño del texto</p>

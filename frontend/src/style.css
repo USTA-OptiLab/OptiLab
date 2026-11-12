@@ -14,6 +14,9 @@
   --text-sm: 0.9375rem;
   --text-sm--line-height: 1.4rem;
 
+  /* Ancho común de contenido para la portada y todos los métodos (max-w-app) */
+  --container-app: 80rem;
+
   /* Grises: verde-negro cálido (tintes de #0b0c0a / #121410 / #23261f) */
   --color-neutral-50: #f6f7f2;
   --color-neutral-100: #eef0e8;
@@ -83,6 +86,12 @@
      scrollbars, form controls) don't render light-on-light. */
   :root {
     color-scheme: dark;
+    /* Escala fluida y contenida: 16px a 1280px de ancho, tope de 18px (~2560px).
+       Todo en Tailwind va en rem, así que la interfaz crece apenas en pantallas
+       grandes en lugar de quedar diminuta. --text-zoom lo ajusta MODI (Ctrl +/-). */
+    font-size: calc(clamp(16px, 13.5px + 0.2vw, 18px) * var(--text-zoom, 1));
+    /* Margen lateral: 28px en la ventana por defecto, más aire en pantallas anchas */
+    --gutter: clamp(1.75rem, 4vw - 1.5rem, 4.5rem);
   }
 
   body {
@@ -112,6 +121,10 @@
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+@utility px-gutter {
+  padding-inline: var(--gutter);
 }
 
 @keyframes llena {

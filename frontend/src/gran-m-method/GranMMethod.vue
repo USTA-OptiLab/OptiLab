@@ -137,7 +137,7 @@ const interpretation = computed(() => {
 </script>
 
 <template>
-  <div class="mx-auto flex w-full max-w-5xl flex-col gap-8 p-6">
+  <div class="mx-auto flex w-full max-w-app flex-col gap-8 px-gutter py-6">
     <header>
       <h2 class="text-2xl font-semibold">Método de la Gran M</h2>
       <p class="text-neutral-400">Las variables artificiales se penalizan con M en la función objetivo</p>

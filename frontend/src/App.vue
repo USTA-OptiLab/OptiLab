@@ -157,7 +157,8 @@ const pill = 'rounded-full border border-neutral-700 bg-neutral-900 font-medium 
 
 <template>
   <div class="min-h-screen bg-neutral-950 text-neutral-100">
-    <header class="sticky top-0 z-30 flex items-center gap-3 border-b border-neutral-800 bg-neutral-950/95 px-7 py-2.5">
+    <header class="sticky top-0 z-30 border-b border-neutral-800 bg-neutral-950/95 py-2.5">
+      <div class="mx-auto flex w-full max-w-app items-center gap-3 px-gutter">
       <button class="group flex items-center gap-2 px-1 py-1.5 text-lg font-semibold tracking-tight" aria-label="OptiLab, ir al inicio" @click="home">
         <i class="block size-2.5 rotate-45 rounded-xs bg-indigo-300 transition-transform duration-500 ease-out group-hover:rotate-225" />
         OptiLab
@@ -172,14 +173,15 @@ const pill = 'rounded-full border border-neutral-700 bg-neutral-900 font-medium 
         Buscar método
         <kbd class="rounded-md border border-neutral-700 px-1.5 py-0.5 font-mono text-xs">Ctrl K</kbd>
       </button>
+      </div>
     </header>
 
-    <div v-if="current && current.id === 'vogel'" class="mx-auto w-full max-w-7xl px-7 py-6">
+    <div v-if="current && current.id === 'vogel'" class="mx-auto w-full max-w-app px-gutter py-6">
       <component :is="current.component" />
     </div>
     <component :is="current.component" v-else-if="current" />
 
-    <main v-else class="mx-auto w-full max-w-[1220px] px-7 pt-8 pb-12">
+    <main v-else class="mx-auto w-full max-w-app px-gutter pt-8 pb-12">
       <section class="grid items-center gap-12 lg:grid-cols-[1fr_1.12fr]">
         <div>
           <h1 class="text-5xl leading-none font-semibold tracking-tighter text-balance sm:text-6xl">
@@ -190,7 +192,7 @@ const pill = 'rounded-full border border-neutral-700 bg-neutral-900 font-medium 
           </p>
         </div>
 
-        <div class="flex h-[400px] flex-col rounded-2xl border border-neutral-700 bg-neutral-900 px-5 pt-4 pb-3.5" @mouseenter="hoverIn" @mouseleave="hoverOut">
+        <div class="flex h-100 flex-col rounded-2xl border border-neutral-700 bg-neutral-900 px-5 pt-4 pb-3.5" @mouseenter="hoverIn" @mouseleave="hoverOut">
           <div :key="slide" class="flex flex-1 flex-col">
             <div class="mb-2.5 flex items-baseline justify-between">
               <b class="text-base font-semibold tracking-tight">{{ slides[slide].title }}</b>
@@ -254,7 +256,7 @@ const pill = 'rounded-full border border-neutral-700 bg-neutral-900 font-medium 
     </main>
 
     <div v-if="paletteOpen" class="fixed inset-0 z-50 grid content-start justify-items-center bg-black/60 pt-[14vh]" @click.self="paletteOpen = false">
-      <div role="dialog" aria-label="Buscar método" class="w-[min(560px,92vw)] overflow-hidden rounded-2xl border border-neutral-700 bg-neutral-900 shadow-2xl">
+      <div role="dialog" aria-label="Buscar método" class="w-[min(35rem,92vw)] overflow-hidden rounded-2xl border border-neutral-700 bg-neutral-900 shadow-2xl">
         <input ref="searchInput" v-model="query" placeholder="Buscar un método…" autocomplete="off" class="w-full border-0 border-b border-neutral-800 bg-transparent px-4.5 py-4 text-base outline-none" @input="selected = 0" />
         <ul class="max-h-[50vh] overflow-auto p-1.5">
           <li v-for="(m, i) in results" :key="m.id">

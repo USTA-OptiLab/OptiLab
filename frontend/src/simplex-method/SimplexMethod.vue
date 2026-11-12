@@ -379,7 +379,8 @@ function formatCell(cell) {
 <template>
   <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
     <!-- Header -->
-    <header class="border-b border-slate-800 bg-slate-900/90 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-lg shadow-black/20">
+    <header class="border-b border-slate-800 bg-slate-900/90 py-3.5 shadow-lg shadow-black/20">
+      <div class="mx-auto flex w-full max-w-app px-gutter flex-wrap items-center justify-between gap-4">
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-xl font-bold tracking-tight text-white">Método Simplex</h1>
@@ -468,6 +469,7 @@ function formatCell(cell) {
           </button>
         </div>
       </div>
+      </div>
     </header>
 
     <!-- Error Alert Banner -->
@@ -489,7 +491,7 @@ function formatCell(cell) {
     </div>
 
     <!-- Main Workspace -->
-    <main class="flex-1 p-4 md:p-6 max-w-7xl w-full mx-auto space-y-6">
+    <main class="flex-1 px-gutter py-6 max-w-app w-full mx-auto space-y-6">
 
       <!-- =================================================================== -->
       <!-- TAB 1: MODEL CONFIGURATION / EDITOR -->
