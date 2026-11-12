@@ -137,7 +137,7 @@ const interpretation = computed(() => {
 </script>
 
 <template>
-  <div class="mx-auto flex w-full max-w-5xl flex-col gap-8 p-6">
+  <div class="mx-auto flex w-full max-w-app flex-col gap-8 px-gutter py-6">
     <header>
       <h2 class="text-2xl font-semibold">Método de las Dos Fases</h2>
       <p class="text-neutral-400">Fase 1 encuentra factibilidad · Fase 2 encuentra optimalidad</p>

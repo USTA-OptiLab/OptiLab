@@ -192,7 +192,7 @@ onBeforeUnmount(() => {
   <div class="min-h-screen bg-neutral-950 text-neutral-100">
     <header class="border-b border-neutral-800 bg-neutral-950/90">
       <div
-        class="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8"
+        class="mx-auto flex max-w-app flex-wrap items-center justify-between gap-3 px-gutter py-4"
       >
         <div class="flex items-center gap-3">
           <div
@@ -225,7 +225,7 @@ onBeforeUnmount(() => {
     </header>
 
     <main
-      class="mx-auto grid max-w-[1600px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[390px_minmax(0,1fr)] lg:px-8"
+      class="mx-auto grid max-w-app gap-6 px-gutter py-6 lg:grid-cols-[24rem_minmax(0,1fr)]"
     >
       <aside class="space-y-4 lg:sticky lg:top-6 lg:self-start">
         <form class="space-y-4" @submit.prevent="resolveProblem">
