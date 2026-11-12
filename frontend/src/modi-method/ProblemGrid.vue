@@ -7,6 +7,8 @@ const emit = defineEmits(['change'])
 const fieldClass =
   'w-16 rounded-md border border-neutral-700 bg-neutral-950 px-1 text-center text-sm text-neutral-100 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20'
 const headerFieldClass = `${fieldClass} py-0.5 font-semibold`
+// Los nombres ("Planta 1", "Ciudad A"…) crecen con su texto; w-16 queda como mínimo
+const anchoNombre = (texto) => ({ width: `max(4rem, calc(${String(texto ?? '').length}ch + 1rem))` })
 const cellFieldClass = `${fieldClass} py-1`
 
 function redimensionar(m, n) {
@@ -91,6 +93,8 @@ defineExpose({ limpiar })
               <input
                 :value="problema.destinos[j]"
                 :class="headerFieldClass"
+                :style="anchoNombre(problema.destinos[j])"
+                @input="Object.assign($event.target.style, anchoNombre($event.target.value))"
                 @change="problema.destinos[j] = $event.target.value; emit('change')"
               />
             </th>
@@ -103,6 +107,8 @@ defineExpose({ limpiar })
               <input
                 :value="problema.origenes[i]"
                 :class="headerFieldClass"
+                :style="anchoNombre(problema.origenes[i])"
+                @input="Object.assign($event.target.style, anchoNombre($event.target.value))"
                 @change="problema.origenes[i] = $event.target.value; emit('change')"
               />
             </td>

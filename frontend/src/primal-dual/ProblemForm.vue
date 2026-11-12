@@ -74,12 +74,13 @@ function removeCons() {
         <div class="flex items-center gap-2">
           <span class="w-14 text-sm text-slate-400">Signo</span>
           <template v-for="(_, j) in form.signs" :key="j">
-            <select v-model="form.signs[j]" :class="[select, 'w-20']">
+            <!-- w-28 = input (w-20) + gap + etiqueta (w-6): ocupa la columna completa
+                 y deja lugar a "x1 libre" junto a la flecha del select -->
+            <select v-model="form.signs[j]" :class="[select, 'w-28']">
               <option value=">=0">x{{ j + 1 }} ≥ 0</option>
               <option value="<=0">x{{ j + 1 }} ≤ 0</option>
               <option value="libre">x{{ j + 1 }} libre</option>
             </select>
-            <span class="w-6" />
           </template>
         </div>
       </div>
