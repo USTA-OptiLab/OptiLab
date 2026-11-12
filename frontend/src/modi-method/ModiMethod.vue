@@ -213,7 +213,7 @@ const PESTANAS = [
 <template>
   <div class="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-4 bg-neutral-950 p-4 text-neutral-100">
     <header class="flex flex-wrap items-baseline justify-between gap-x-4">
-      <h1 class="text-xl font-semibold">OptiLab <span class="font-normal text-neutral-400">— Método MODI</span></h1>
+      <h1 class="text-xl font-semibold">Método MODI</h1>
       <p class="text-xs text-neutral-500">Ctrl+Enter resolver · Ctrl+O abrir · Ctrl+S guardar · Ctrl +/− tamaño del texto</p>
     </header>
 

@@ -153,7 +153,7 @@ function resetAll() {
     </div>
 
     <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_290px]">
-      <div class="min-w-0 rounded-2xl border border-white/10 bg-[#101624] shadow-2xl shadow-black/10">
+      <div class="min-w-0 rounded-2xl border border-white/10 bg-[var(--color-neutral-900)] shadow-2xl shadow-black/10">
         <div class="flex flex-col justify-between gap-4 border-b border-white/8 px-5 py-5 sm:flex-row sm:items-center sm:px-6">
           <div>
             <h2 class="text-base font-semibold text-white">Configuración del problema</h2>
@@ -167,12 +167,12 @@ function resetAll() {
         <div class="space-y-7 p-5 sm:p-6">
           <div>
             <label for="problem-context" class="mb-3 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">Contexto del problema <span class="font-normal normal-case tracking-normal text-slate-500">(opcional)</span></label>
-            <textarea id="problem-context" v-model="context" rows="3" placeholder="Describe la empresa, qué se transporta y cuál es el objetivo del problema…" class="w-full resize-y rounded-xl border border-white/10 bg-[#0a0f1a] px-4 py-3 text-sm leading-relaxed text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-indigo-400" @input="resetResult"></textarea>
+            <textarea id="problem-context" v-model="context" rows="3" placeholder="Describe la empresa, qué se transporta y cuál es el objetivo del problema…" class="w-full resize-y rounded-xl border border-white/10 bg-[var(--color-neutral-950)] px-4 py-3 text-sm leading-relaxed text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-indigo-400" @input="resetResult"></textarea>
           </div>
 
           <div>
             <p class="mb-3 text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">Objetivo de optimización</p>
-            <div class="flex max-w-sm gap-1 rounded-xl border border-white/10 bg-[#0a0f1a] p-1">
+            <div class="flex max-w-sm gap-1 rounded-xl border border-white/10 bg-[var(--color-neutral-950)] p-1">
               <button
                 class="flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition"
                 :class="!maximize ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-950/30' : 'text-slate-400 hover:text-white'"
@@ -191,7 +191,7 @@ function resetAll() {
           <div class="flex flex-wrap items-end gap-8">
             <div>
               <p class="mb-3 text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">Orígenes</p>
-              <div class="flex items-center rounded-xl border border-white/10 bg-[#0a0f1a]">
+              <div class="flex items-center rounded-xl border border-white/10 bg-[var(--color-neutral-950)]">
                 <button class="h-10 w-11 text-xl text-slate-300 transition hover:text-white disabled:opacity-25" aria-label="Quitar un origen" :disabled="rowCount <= MIN_SIZE" @click="resizeProblem(rowCount - 1, colCount)">−</button>
                 <span class="min-w-10 text-center text-sm font-semibold tabular-nums">{{ rowCount }}</span>
                 <button class="h-10 w-11 text-xl text-slate-300 transition hover:text-white disabled:opacity-25" aria-label="Añadir un origen" :disabled="rowCount >= MAX_SIZE" @click="resizeProblem(rowCount + 1, colCount)">+</button>
@@ -199,7 +199,7 @@ function resetAll() {
             </div>
             <div>
               <p class="mb-3 text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">Destinos</p>
-              <div class="flex items-center rounded-xl border border-white/10 bg-[#0a0f1a]">
+              <div class="flex items-center rounded-xl border border-white/10 bg-[var(--color-neutral-950)]">
                 <button class="h-10 w-11 text-xl text-slate-300 transition hover:text-white disabled:opacity-25" aria-label="Quitar un destino" :disabled="colCount <= MIN_SIZE" @click="resizeProblem(rowCount, colCount - 1)">−</button>
                 <span class="min-w-10 text-center text-sm font-semibold tabular-nums">{{ colCount }}</span>
                 <button class="h-10 w-11 text-xl text-slate-300 transition hover:text-white disabled:opacity-25" aria-label="Añadir un destino" :disabled="colCount >= MAX_SIZE" @click="resizeProblem(rowCount, colCount + 1)">+</button>
@@ -215,26 +215,26 @@ function resetAll() {
             <div class="overflow-x-auto rounded-xl border border-white/10">
               <table class="w-full min-w-max border-separate border-spacing-0 text-center text-sm">
                 <thead>
-                  <tr class="bg-[#1b2537] text-xs font-semibold text-slate-300">
-                    <th class="sticky left-0 z-10 min-w-23 border-b border-r border-white/10 bg-[#1b2537] px-3 py-3 text-left">Origen</th>
+                  <tr class="bg-[var(--color-neutral-800)] text-xs font-semibold text-slate-300">
+                    <th class="sticky left-0 z-10 min-w-23 border-b border-r border-white/10 bg-[var(--color-neutral-800)] px-3 py-3 text-left">Origen</th>
                     <th v-for="j in colCount" :key="'head-'+j" class="min-w-22 border-b border-r border-white/10 px-2 py-3">D{{ j }}</th>
                     <th class="min-w-24 border-b border-white/10 bg-indigo-500/8 px-3 py-3 text-indigo-300">Oferta</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="i in rowCount" :key="'row-'+i" class="bg-[#111a2a]">
-                    <th class="sticky left-0 z-10 border-b border-r border-white/8 bg-[#1b2537] px-3 py-2 text-left text-xs font-semibold text-slate-300">O{{ i }}</th>
+                  <tr v-for="i in rowCount" :key="'row-'+i" class="bg-[var(--color-neutral-900)]">
+                    <th class="sticky left-0 z-10 border-b border-r border-white/8 bg-[var(--color-neutral-800)] px-3 py-2 text-left text-xs font-semibold text-slate-300">O{{ i }}</th>
                     <td v-for="j in colCount" :key="'cell-'+i+'-'+j" class="border-b border-r border-white/8 p-1.5">
-                      <input v-model.number="costs[i-1][j-1]" type="number" min="0" step="any" :aria-label="`${maximize ? 'Ganancia' : 'Costo'} O${i} D${j}`" class="w-18 rounded-md border border-transparent bg-[#0a101d] px-2 py-2.5 text-center text-sm tabular-nums text-white outline-none transition hover:border-white/15 focus:border-indigo-400 focus:bg-[#0c1426]" @input="resetResult" />
+                      <input v-model.number="costs[i-1][j-1]" type="number" min="0" step="any" :aria-label="`${maximize ? 'Ganancia' : 'Costo'} O${i} D${j}`" class="w-18 rounded-md border border-transparent bg-[var(--color-neutral-950)] px-2 py-2.5 text-center text-sm tabular-nums text-white outline-none transition hover:border-white/15 focus:border-indigo-400 focus:bg-[var(--color-neutral-900)]" @input="resetResult" />
                     </td>
                     <td class="border-b border-white/8 bg-indigo-500/5 p-1.5">
-                      <input v-model.number="supply[i-1]" type="number" min="0" step="any" :aria-label="`Oferta de origen ${i}`" class="w-19 rounded-md border border-indigo-400/15 bg-[#0a101d] px-2 py-2.5 text-center text-sm font-semibold tabular-nums text-indigo-200 outline-none transition focus:border-indigo-400" @input="resetResult" />
+                      <input v-model.number="supply[i-1]" type="number" min="0" step="any" :aria-label="`Oferta de origen ${i}`" class="w-19 rounded-md border border-indigo-400/15 bg-[var(--color-neutral-950)] px-2 py-2.5 text-center text-sm font-semibold tabular-nums text-indigo-200 outline-none transition focus:border-indigo-400" @input="resetResult" />
                     </td>
                   </tr>
-                  <tr class="bg-[#1b2537]">
-                    <th class="sticky left-0 z-10 border-r border-white/10 bg-[#1b2537] px-3 py-3 text-left text-xs font-semibold text-emerald-300">Demanda</th>
+                  <tr class="bg-[var(--color-neutral-800)]">
+                    <th class="sticky left-0 z-10 border-r border-white/10 bg-[var(--color-neutral-800)] px-3 py-3 text-left text-xs font-semibold text-emerald-300">Demanda</th>
                     <td v-for="j in colCount" :key="'demand-'+j" class="border-r border-white/10 bg-emerald-500/5 p-1.5">
-                      <input v-model.number="demand[j-1]" type="number" min="0" step="any" :aria-label="`Demanda de destino ${j}`" class="w-18 rounded-md border border-emerald-400/15 bg-[#0a101d] px-2 py-2.5 text-center text-sm font-semibold tabular-nums text-emerald-200 outline-none transition focus:border-emerald-400" @input="resetResult" />
+                      <input v-model.number="demand[j-1]" type="number" min="0" step="any" :aria-label="`Demanda de destino ${j}`" class="w-18 rounded-md border border-emerald-400/15 bg-[var(--color-neutral-950)] px-2 py-2.5 text-center text-sm font-semibold tabular-nums text-emerald-200 outline-none transition focus:border-emerald-400" @input="resetResult" />
                     </td>
                     <td class="px-3 py-3 text-xs font-semibold text-slate-400">Total</td>
                   </tr>
@@ -256,7 +256,7 @@ function resetAll() {
       </div>
 
       <div class="space-y-5">
-        <div class="rounded-2xl border border-white/10 bg-[#101624] p-5 sm:p-6">
+        <div class="rounded-2xl border border-white/10 bg-[var(--color-neutral-900)] p-5 sm:p-6">
           <p class="mb-5 text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">Resumen del problema</p>
           <div class="space-y-4">
             <div class="flex items-center justify-between gap-4"><span class="text-sm text-slate-400">Oferta total</span><span class="text-xl font-bold tabular-nums text-white">{{ formatNumber(supplyTotal) }}</span></div>
@@ -270,7 +270,7 @@ function resetAll() {
           </div>
         </div>
 
-        <div class="rounded-2xl border border-white/10 bg-[#101624] p-5 sm:p-6">
+        <div class="rounded-2xl border border-white/10 bg-[var(--color-neutral-900)] p-5 sm:p-6">
           <p class="mb-4 text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">Cargar ejemplo</p>
           <div class="space-y-2">
             <button v-for="example in exampleCases" :key="example.id" class="flex w-full items-center justify-between rounded-lg border border-white/8 bg-white/[0.025] px-4 py-3 text-left text-sm font-medium text-slate-300 transition hover:border-indigo-400/30 hover:bg-indigo-500/10 hover:text-white" @click="loadExample(example)">

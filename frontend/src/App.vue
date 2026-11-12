@@ -174,7 +174,10 @@ const pill = 'rounded-full border border-neutral-700 bg-neutral-900 font-medium 
       </button>
     </header>
 
-    <component :is="current.component" v-if="current" />
+    <div v-if="current && current.id === 'vogel'" class="mx-auto w-full max-w-7xl px-7 py-6">
+      <component :is="current.component" />
+    </div>
+    <component :is="current.component" v-else-if="current" />
 
     <main v-else class="mx-auto w-full max-w-[1220px] px-7 pt-8 pb-12">
       <section class="grid items-center gap-12 lg:grid-cols-[1fr_1.12fr]">

@@ -379,23 +379,12 @@ function formatCell(cell) {
 <template>
   <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
     <!-- Header -->
-    <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-30 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-lg shadow-black/20">
-      <div class="flex items-center gap-3">
-        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-400 flex items-center justify-center font-bold text-xl text-white shadow-md shadow-indigo-500/25">
-          <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-            <polyline points="16 7 22 7 22 13"/>
-          </svg>
+    <header class="border-b border-slate-800 bg-slate-900/90 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-lg shadow-black/20">
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl font-bold tracking-tight text-white">Método Simplex</h1>
         </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-xl font-bold tracking-tight text-white">OptiLab</h1>
-            <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-medium border border-indigo-500/20">
-              Método Simplex
-            </span>
-          </div>
-          <p class="text-xs text-slate-400">Paso a paso con tablas, pivotes y análisis contextualizado</p>
-        </div>
+        <p class="text-xs text-slate-400">Paso a paso con tablas, pivotes y análisis contextualizado</p>
       </div>
 
       <!-- Navigation Tabs & Display Mode -->
