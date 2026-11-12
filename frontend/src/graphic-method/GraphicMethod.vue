@@ -213,9 +213,6 @@ onBeforeUnmount(() => {
             </svg>
           </div>
           <div>
-            <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-indigo-300">
-              OptiLab
-            </p>
             <h1 class="text-xl font-semibold tracking-tight">Método gráfico</h1>
           </div>
         </div>

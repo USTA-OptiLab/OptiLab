@@ -23,7 +23,7 @@ const props = defineProps({
 })
 
 const container = ref(null)
-const palette = ['#818cf8', '#f472b6', '#38bdf8', '#fbbf24', '#34d399', '#c084fc', '#fb7185', '#2dd4bf']
+const palette = ['#c6ff3d', '#f2b84b', '#7fe0a3', '#ff8a7a', '#9ad1ff', '#e6e6e6', '#ffb36b', '#5eead4']
 
 let chart = null
 let resizeObserver = null
@@ -54,7 +54,7 @@ function buildOption(result, showObjective) {
       symbol: 'none',
       silent: true,
       z: 1,
-      lineStyle: { color: '#10b981', width: 1.5, opacity: 0.55 },
+      lineStyle: { color: '#c6ff3d', width: 1.5, opacity: 0.55 },
       areaStyle: { color: 'rgba(16, 185, 129, 0.18)' },
       tooltip: { show: false },
       emphasis: { disabled: true },
@@ -69,7 +69,7 @@ function buildOption(result, showObjective) {
       symbol: 'none',
       silent: true,
       z: 1,
-      lineStyle: { color: '#34d399', width: 8, opacity: 0.55 },
+      lineStyle: { color: '#c6ff3d', width: 8, opacity: 0.55 },
       tooltip: { show: false },
       emphasis: { disabled: true },
     })
@@ -82,7 +82,7 @@ function buildOption(result, showObjective) {
       data: [result.region.point],
       symbol: 'circle',
       symbolSize: 18,
-      itemStyle: { color: 'rgba(52, 211, 153, 0.35)', borderColor: '#34d399', borderWidth: 2 },
+      itemStyle: { color: 'rgba(198, 255, 61, 0.28)', borderColor: '#c6ff3d', borderWidth: 2 },
       silent: true,
       z: 1,
       tooltip: { show: false },
@@ -120,8 +120,8 @@ function buildOption(result, showObjective) {
     symbol: point.optimal ? 'star' : 'circle',
     symbolSize: point.optimal ? 20 : point.feasible ? 11 : 7,
     itemStyle: {
-      color: point.optimal ? '#34d399' : point.feasible ? '#60a5fa' : '#64748b',
-      borderColor: point.optimal ? '#a7f3d0' : '#0f172a',
+      color: point.optimal ? '#c6ff3d' : point.feasible ? '#7fe0a3' : '#64748b',
+      borderColor: point.optimal ? '#e8ffa8' : '#0b0c0a',
       borderWidth: 1.5,
       opacity: point.feasible ? 1 : 0.65,
     },
@@ -129,7 +129,7 @@ function buildOption(result, showObjective) {
       show: true,
       position: 'top',
       formatter: point.optimal ? `${point.label} ★` : point.label,
-      color: point.optimal ? '#a7f3d0' : point.feasible ? '#bfdbfe' : '#64748b',
+      color: point.optimal ? '#e8ffa8' : point.feasible ? '#d6d9cd' : '#64748b',
       fontSize: point.optimal ? 12 : 10,
       fontWeight: point.optimal ? 600 : 400,
     },
@@ -187,7 +187,7 @@ function buildOption(result, showObjective) {
       axisLabel: { color: '#737373' },
       axisLine: { lineStyle: { color: '#525252' } },
       splitLine: { lineStyle: { color: '#262626' } },
-      axisPointer: { lineStyle: { color: '#6366f1' } },
+      axisPointer: { lineStyle: { color: '#c6ff3d' } },
     },
     yAxis: {
       type: 'value',
@@ -200,7 +200,7 @@ function buildOption(result, showObjective) {
       axisLabel: { color: '#737373' },
       axisLine: { lineStyle: { color: '#525252' } },
       splitLine: { lineStyle: { color: '#262626' } },
-      axisPointer: { lineStyle: { color: '#6366f1' } },
+      axisPointer: { lineStyle: { color: '#c6ff3d' } },
     },
     dataZoom: [
       { type: 'inside', xAxisIndex: 0, filterMode: 'none' },
