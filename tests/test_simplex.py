@@ -1,5 +1,7 @@
 from fractions import Fraction
 
+import pytest
+
 from optilab.simplex import SimplexSolver, fmt_frac, parse_fraction
 
 
@@ -170,3 +172,104 @@ def test_simplex_with_context_and_conclusion():
     assert conc["plan_of_action"][1]["description"] == "Sillas"
     assert conc["plan_of_action"][1]["value_frac"] == "6"
     assert len(conc["resource_diagnosis"]) == 3
+
+
+def _solve(objective, c, rows):
+    return SimplexSolver(
+        objective=objective,
+        c=c,
+        constraints=[{"lhs": a, "sign": s, "rhs": b} for a, s, b in rows],
+    ).solve()
+
+
+def test_degenerate_artificial_is_pivoted_out_of_basis():
+    # Phase 1 ends with an artificial variable basic at level 0; it must be
+    # pivoted out, otherwise phase 2 reports a point violating R2.
+    res = _solve(
+        "max", [-3, 3], [([1, 3], "=", 2), ([5, 6], "=", 7), ([6, 0], "<=", 6)]
+    )
+    assert res["status"] == "optimal"
+    report = res["final_report"]
+    assert report["z_optimal"]["frac"] == "-2"
+    assert {k: v["frac"] for k, v in report["variables"].items()} == {
+        "x1": "1",
+        "x2": "1/3",
+    }
+    assert report["all_satisfied"] is True
+
+
+def test_degenerate_artificial_does_not_fake_unbounded():
+    res = _solve(
+        "min",
+        [2, 5],
+        [
+            ([1, 1], "<=", 10),
+            ([6, -2], "<=", 6),
+            ([-2, 6], ">=", 14),
+            ([3, -1], ">=", 3),
+        ],
+    )
+    assert res["status"] == "optimal"
+    assert res["final_report"]["z_optimal"]["frac"] == "19"
+
+
+def test_redundant_equality_constraint_is_dropped_in_phase_two():
+    res = _solve("max", [1, 1], [([1, 1], "=", 2), ([2, 2], "=", 4), ([1, 0], "<=", 1)])
+    assert res["status"] == "optimal"
+    assert res["final_report"]["z_optimal"]["frac"] == "2"
+
+
+def test_matches_linprog_on_random_mixed_problems():
+    import random
+
+    from scipy.optimize import linprog
+
+    rng = random.Random(7)
+    checked = 0
+    for _ in range(300):
+        n, m = rng.choice([2, 3]), rng.randint(2, 4)
+        sense = rng.choice(["max", "min"])
+        c = [rng.randint(-3, 9) for _ in range(n)]
+        rows = [
+            (
+                [rng.randint(-2, 6) for _ in range(n)],
+                rng.choice(["<=", "<=", ">=", "="]),
+                rng.randint(1, 20),
+            )
+            for _ in range(m)
+        ]
+        a_ub, b_ub, a_eq, b_eq = [], [], [], []
+        for a, s, b in rows:
+            if s == "<=":
+                a_ub.append(a)
+                b_ub.append(b)
+            elif s == ">=":
+                a_ub.append([-x for x in a])
+                b_ub.append(-b)
+            else:
+                a_eq.append(a)
+                b_eq.append(b)
+        ref = linprog(
+            [-x for x in c] if sense == "max" else c,
+            A_ub=a_ub or None,
+            b_ub=b_ub or None,
+            A_eq=a_eq or None,
+            b_eq=b_eq or None,
+            bounds=(0, None),
+            method="highs",
+        )
+        res = _solve(sense, c, rows)
+        if ref.status == 0:
+            expected = -ref.fun if sense == "max" else ref.fun
+            assert res["status"] == "optimal", (sense, c, rows)
+            z = Fraction(res["final_report"]["z_optimal"]["frac"])
+            assert float(z) == pytest.approx(expected), (sense, c, rows)
+            assert res["final_report"]["all_satisfied"] is True, (sense, c, rows)
+        elif ref.status == 2:
+            assert res["status"] == "infeasible", (sense, c, rows)
+        elif ref.status == 3:
+            assert res["status"] == "unbounded", (sense, c, rows)
+        else:
+            continue
+        checked += 1
+    assert checked > 250

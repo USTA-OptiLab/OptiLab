@@ -1081,28 +1081,30 @@ class SimplexSolver:
         # Mapping from old col to new col
         old_to_new = {old_idx: new_idx for new_idx, old_idx in enumerate(keep_cols)}
 
-        # Update basis to new column indices
-        p2_basis: list[int] = []
-        for i, b_idx in enumerate(basis):
-            if b_idx in old_to_new:
-                p2_basis.append(old_to_new[b_idx])
-            else:
-                # Artificial variable remained in basis at level 0 (degenerate)
-                # Find a non-artificial variable to pivot it out
-                pivot_candidate = next(
-                    (old_to_new[c] for c in keep_cols if t_matrix[i + 1][c] != 0), None
-                )
-                if pivot_candidate is not None:
-                    p2_basis.append(pivot_candidate)
-                else:
-                    p2_basis.append(0)
+        # Drive artificial variables that stayed basic (at level 0) out of the
+        # basis with a real pivot on a non-artificial column. If the row has no
+        # such column it is a redundant constraint and is dropped.
+        redundant_rows: set[int] = set()
+        for i in range(num_rows):
+            if basis[i] in old_to_new:
+                continue
+            entering = next((c for c in keep_cols if t_matrix[i + 1][c] != 0), None)
+            if entering is None:
+                redundant_rows.add(i)
+                continue
+            self._apply_pivot(t_matrix, i + 1, entering, t_matrix[i + 1][entering])
+            basis[i] = entering
+
+        kept_rows = [i for i in range(num_rows) if i not in redundant_rows]
+        num_p2_rows = len(kept_rows)
+        p2_basis = [old_to_new[basis[i]] for i in kept_rows]
 
         # Create Phase 2 matrix
-        p2_matrix = [[Fraction(0)] * (num_p2_cols + 1) for _ in range(num_rows + 1)]
-        for i in range(1, num_rows + 1):
+        p2_matrix = [[Fraction(0)] * (num_p2_cols + 1) for _ in range(num_p2_rows + 1)]
+        for new_i, old_i in enumerate(kept_rows, 1):
             for new_idx, old_idx in enumerate(keep_cols):
-                p2_matrix[i][new_idx] = t_matrix[i][old_idx]
-            p2_matrix[i][-1] = t_matrix[i][-1]
+                p2_matrix[new_i][new_idx] = t_matrix[old_i + 1][old_idx]
+            p2_matrix[new_i][-1] = t_matrix[old_i + 1][-1]
 
         # Restore original objective coefficients in Row 0
         z_label = "Z" if self.objective == "max" else "Z'"
@@ -1154,7 +1156,7 @@ class SimplexSolver:
             valid_ratios = {}
             ratios = []
 
-            for i in range(1, num_rows + 1):
+            for i in range(1, num_p2_rows + 1):
                 coeff = p2_matrix[i][entering_col]
                 rhs_val = p2_matrix[i][-1]
                 row_basis_var = p2_col_names[p2_basis[i - 1]]
