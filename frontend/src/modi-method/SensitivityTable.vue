@@ -18,7 +18,7 @@ function num(x, dec) {
     </p>
     <p v-if="error" class="rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-2 text-sm text-rose-100">{{ error }}</p>
     <table v-else class="w-full text-left">
-      <thead class="text-[11px] uppercase tracking-wider text-neutral-500">
+      <thead class="text-[13px] uppercase tracking-wider text-neutral-500">
         <tr>
           <th class="py-3 pr-5 font-medium">Ruta</th>
           <th class="py-3 pr-5 font-medium">Tipo</th>

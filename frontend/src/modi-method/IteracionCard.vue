@@ -97,7 +97,7 @@ const tarjeta = 'rounded-lg border border-neutral-800 bg-neutral-900/50 p-3'
                 class="border-t border-neutral-800"
                 :class="f.entra ? 'bg-emerald-500/15' : f.delta < -EPS ? 'bg-rose-500/10' : ''"
               >
-                <td class="py-1 pr-2">{{ f.ruta }}<span v-if="f.entra" class="ml-2 rounded bg-emerald-400 px-1.5 text-[10px] font-bold uppercase text-emerald-950">entra</span></td>
+                <td class="py-1 pr-2">{{ f.ruta }}<span v-if="f.entra" class="ml-2 rounded bg-emerald-400 px-1.5 text-xs font-bold uppercase text-emerald-950">entra</span></td>
                 <td class="pr-2 font-mono text-neutral-300">{{ f.calculo }}</td>
                 <td class="text-right font-mono font-semibold" :class="f.delta < -EPS ? 'text-rose-300' : 'text-neutral-300'">{{ num(f.delta, dec) }}</td>
               </tr>

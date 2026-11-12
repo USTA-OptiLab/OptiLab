@@ -99,7 +99,7 @@ const slides = [
   { id: 'modi', title: 'MODI', sub: 'Costos reducidos Δ', head: ['Δ', 'D1', 'D2', 'D3', 'D4'], rows: [['O1', '·', '32', '60', '·'], ['O2', '1', '-18', '·', '·'], ['O3', '11', '·', '70', '·']], pivot: [1, 2], foot: 'Δ negativo: la solución mejora. El costo baja de 779 a 743.' },
 ].map((s) => ({ ...s, method: methods.find((m) => m.id === s.id) }))
 
-const SLIDE_MS = 5000
+const SLIDE_MS = 4000
 const slide = ref(0)
 const tick = ref(0) // reinicia la barra de progreso
 const paused = ref(false)
@@ -190,13 +190,13 @@ const pill = 'rounded-full border border-neutral-700 bg-neutral-900 font-medium 
           </p>
         </div>
 
-        <div class="flex min-h-[300px] flex-col rounded-2xl border border-neutral-700 bg-neutral-900 px-5 pt-4 pb-3.5" @mouseenter="hoverIn" @mouseleave="hoverOut">
+        <div class="flex h-[400px] flex-col rounded-2xl border border-neutral-700 bg-neutral-900 px-5 pt-4 pb-3.5" @mouseenter="hoverIn" @mouseleave="hoverOut">
           <div :key="slide" class="flex flex-1 flex-col">
             <div class="mb-2.5 flex items-baseline justify-between">
               <b class="text-base font-semibold tracking-tight">{{ slides[slide].title }}</b>
               <span class="text-sm text-neutral-400">{{ slides[slide].sub }}</span>
             </div>
-            <div class="flex min-h-[220px] flex-1 flex-col justify-center">
+            <div class="flex min-h-0 flex-1 flex-col justify-center overflow-hidden">
               <div v-if="slides[slide].kind === 'graph'" aria-hidden="true">
                 <svg viewBox="0 0 380 300" class="max-h-60 w-full">
                   <g class="stroke-neutral-600" stroke-width="1"><line x1="36" y1="268" x2="360" y2="268" /><line x1="36" y1="268" x2="36" y2="12" /></g>
@@ -229,7 +229,7 @@ const pill = 'rounded-full border border-neutral-700 bg-neutral-900 font-medium 
           <div class="mt-3 flex gap-1.5 border-t border-neutral-800 pt-3">
             <button v-for="(s, j) in slides" :key="s.id" class="relative flex h-6.5 flex-1 items-end pb-1.5 text-left text-xs" :class="j === slide ? 'text-neutral-100' : 'text-neutral-400'" :aria-label="s.title" :aria-current="j === slide" @click="goSlide(j)">
               <span class="absolute inset-x-0 top-0 h-[3px] rounded-full bg-neutral-700" />
-              <span v-if="j === slide" :key="tick" class="absolute top-0 left-0 h-[3px] rounded-full bg-indigo-300" :class="reduceMotion ? 'w-full' : 'animate-[llena_5s_linear_forwards]'" :style="{ animationPlayState: paused ? 'paused' : 'running' }" />
+              <span v-if="j === slide" :key="tick" class="absolute top-0 left-0 h-[3px] rounded-full bg-indigo-300" :class="reduceMotion ? 'w-full' : 'animate-[llena_4s_linear_forwards]'" :style="{ animationPlayState: paused ? 'paused' : 'running' }" />
               {{ s.title.split(' ')[0] }}
             </button>
           </div>

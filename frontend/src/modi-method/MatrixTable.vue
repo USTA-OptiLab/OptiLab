@@ -60,10 +60,10 @@ const esFicticio = (nombre) => nombre === 'Ficticio'
             class="relative h-[4.5rem] min-w-[6rem] border border-neutral-800 text-center align-middle"
             :class="claseCelda(i, j)"
           >
-            <span class="absolute left-1.5 top-1 text-[10px] text-neutral-500">c={{ num(problema.costos[i][j], decimales) }}</span>
+            <span class="absolute left-1.5 top-1 text-xs text-neutral-500">c={{ num(problema.costos[i][j], decimales) }}</span>
             <span
               v-if="signos.has(`${i},${j}`)"
-              class="absolute right-1 top-1 rounded-full px-1.5 text-[11px] font-bold leading-4"
+              class="absolute right-1 top-1 rounded-full px-1.5 text-[13px] font-bold leading-4"
               :class="signos.get(`${i},${j}`) > 0 ? 'bg-emerald-400 text-emerald-950' : 'bg-rose-400 text-rose-950'"
             >{{ signos.get(`${i},${j}`) > 0 ? '+' : '−' }}</span>
 
@@ -74,8 +74,8 @@ const esFicticio = (nombre) => nombre === 'Ficticio'
               :class="iteracion.delta[i][j] < -EPS ? 'text-rose-300' : 'text-neutral-400'"
             >Δ = {{ num(iteracion.delta[i][j], decimales) }}</span>
 
-            <span v-if="entra(i, j)" class="absolute inset-x-0 bottom-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">entra</span>
-            <span v-else-if="sale(i, j)" class="absolute inset-x-0 bottom-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300">sale</span>
+            <span v-if="entra(i, j)" class="absolute inset-x-0 bottom-1 text-xs font-semibold uppercase tracking-wide text-emerald-300">entra</span>
+            <span v-else-if="sale(i, j)" class="absolute inset-x-0 bottom-1 text-xs font-semibold uppercase tracking-wide text-amber-300">sale</span>
           </td>
           <td class="bg-amber-500/5 px-3 py-2 text-center font-semibold text-amber-200">{{ num(problema.oferta[i], decimales) }}</td>
           <td v-if="potenciales" class="bg-sky-500/10 px-3 py-2 text-center font-semibold text-sky-200">{{ num(iteracion.u[i], decimales) }}</td>

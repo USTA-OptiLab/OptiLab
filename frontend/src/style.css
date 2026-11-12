@@ -8,6 +8,12 @@
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", monospace;
 
+  /* Escala de texto un punto más grande: los tamaños chicos eran difíciles de leer */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.25rem;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.4rem;
+
   /* Grises: verde-negro cálido (tintes de #0b0c0a / #121410 / #23261f) */
   --color-neutral-50: #f6f7f2;
   --color-neutral-100: #eef0e8;
