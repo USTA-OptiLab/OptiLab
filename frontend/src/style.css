@@ -1,14 +1,109 @@
 @import "tailwindcss";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
 
-/* The app is always dark: tell the browser so native widgets (select popups,
-   scrollbars, form controls) don't render light-on-light. */
+/* Tema "oscuro lima". Se remapean las familias de gris y los acentos que ya
+   usan los métodos, así cada equipo conserva su maquetación y solo cambia la piel. */
+@theme {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", monospace;
+
+  /* Grises: verde-negro cálido (tintes de #0b0c0a / #121410 / #23261f) */
+  --color-neutral-50: #f6f7f2;
+  --color-neutral-100: #eef0e8;
+  --color-neutral-200: #d6d9cd;
+  --color-neutral-300: #bcc0b1;
+  --color-neutral-400: #9aa093;
+  --color-neutral-500: #7a8073;
+  --color-neutral-600: #565b4e;
+  --color-neutral-700: #3a3e34;
+  --color-neutral-800: #23261f;
+  --color-neutral-900: #171a14;
+  --color-neutral-950: #0b0c0a;
+
+  --color-slate-50: #f6f7f2;
+  --color-slate-100: #eef0e8;
+  --color-slate-200: #d6d9cd;
+  --color-slate-300: #bcc0b1;
+  --color-slate-400: #9aa093;
+  --color-slate-500: #7a8073;
+  --color-slate-600: #565b4e;
+  --color-slate-700: #3a3e34;
+  --color-slate-800: #23261f;
+  --color-slate-900: #171a14;
+  --color-slate-950: #0b0c0a;
+
+  /* Acento: lima (200-400 como texto/borde) y verde profundo (500-700 como
+     fondo sólido que admite texto blanco). Reemplaza índigo, violeta y cielo. */
+  --color-indigo-50: #f4ffd6;
+  --color-indigo-100: #e8ffa8;
+  --color-indigo-200: #dcff7a;
+  --color-indigo-300: #c6ff3d;
+  --color-indigo-400: #b2e82f;
+  --color-indigo-500: #5d8f12;
+  --color-indigo-600: #4b7a0c;
+  --color-indigo-700: #3b620a;
+  --color-indigo-800: #2c4a0a;
+  --color-indigo-900: #1f3409;
+  --color-indigo-950: #141f0a;
+
+  --color-violet-50: var(--color-indigo-50);
+  --color-violet-100: var(--color-indigo-100);
+  --color-violet-200: var(--color-indigo-200);
+  --color-violet-300: var(--color-indigo-300);
+  --color-violet-400: var(--color-indigo-400);
+  --color-violet-500: var(--color-indigo-500);
+  --color-violet-600: var(--color-indigo-600);
+  --color-violet-700: var(--color-indigo-700);
+  --color-violet-800: var(--color-indigo-800);
+  --color-violet-900: var(--color-indigo-900);
+  --color-violet-950: var(--color-indigo-950);
+
+  --color-sky-50: var(--color-indigo-50);
+  --color-sky-100: var(--color-indigo-100);
+  --color-sky-200: var(--color-indigo-200);
+  --color-sky-300: var(--color-indigo-300);
+  --color-sky-400: var(--color-indigo-400);
+  --color-sky-500: var(--color-indigo-400);
+  --color-sky-600: var(--color-indigo-600);
+  --color-sky-700: var(--color-indigo-700);
+  --color-sky-800: var(--color-indigo-800);
+  --color-sky-900: var(--color-indigo-900);
+  --color-sky-950: #0b0c0a;
+}
+
 @layer base {
+  /* The app is always dark: tell the browser so native widgets (select popups,
+     scrollbars, form controls) don't render light-on-light. */
   :root {
     color-scheme: dark;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-neutral-950);
+    color: var(--color-neutral-100);
+    -webkit-font-smoothing: antialiased;
   }
 
   select option {
     background-color: var(--color-neutral-900);
     color: var(--color-neutral-100);
+  }
+
+  :focus-visible {
+    outline: 2px solid #c6ff3d;
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled):active {
+    transform: scale(0.97);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
