@@ -256,7 +256,7 @@ onBeforeUnmount(() => {
     >
       Restablecer vista
     </button>
-    <p class="pointer-events-none absolute bottom-20 left-16 text-[10px] text-neutral-600">
+    <p class="pointer-events-none absolute bottom-20 left-16 text-xs text-neutral-600">
       Rueda para zoom · arrastra para mover
     </p>
   </div>

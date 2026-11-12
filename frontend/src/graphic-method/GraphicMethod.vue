@@ -110,10 +110,10 @@ function pointState(point) {
 
 function pointStateClass(point) {
   if (point.optimal) {
-    return 'inline-flex items-center gap-1 rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-200 ring-1 ring-inset ring-emerald-400/30'
+    return 'inline-flex items-center gap-1 rounded-full bg-emerald-400/15 px-2 py-0.5 text-xs font-semibold text-emerald-200 ring-1 ring-inset ring-emerald-400/30'
   }
-  if (point.feasible) return 'text-[10px] font-medium text-sky-200'
-  return 'text-[10px] text-neutral-600'
+  if (point.feasible) return 'text-xs font-medium text-sky-200'
+  return 'text-xs text-neutral-600'
 }
 
 function validateFields() {
@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
             <div class="flex items-center justify-between">
               <h2 class="text-sm font-semibold text-neutral-100">Función objetivo</h2>
               <span
-                class="rounded-full bg-neutral-800 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-neutral-400"
+                class="rounded-full bg-neutral-800 px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-neutral-400"
               >
                 Z
               </span>
@@ -299,7 +299,7 @@ onBeforeUnmount(() => {
           >
             <div class="flex items-center justify-between gap-2">
               <h2 class="text-sm font-semibold text-neutral-100">Restricciones</h2>
-              <span class="text-[10px] uppercase tracking-wider text-neutral-500">
+              <span class="text-xs uppercase tracking-wider text-neutral-500">
                 {{ constraints.length }} {{ constraints.length === 1 ? 'restricción' : 'restricciones' }}
               </span>
             </div>
@@ -317,7 +317,7 @@ onBeforeUnmount(() => {
                   </span>
                   <button
                     type="button"
-                    class="text-[11px] text-neutral-500 transition hover:text-rose-300 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:text-neutral-500"
+                    class="text-[13px] text-neutral-500 transition hover:text-rose-300 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:text-neutral-500"
                     :disabled="constraints.length === 1"
                     @click="removeConstraint(index)"
                   >
@@ -363,7 +363,7 @@ onBeforeUnmount(() => {
                   />
                 </div>
 
-                <p class="mt-2 truncate font-mono text-[11px] text-neutral-500">
+                <p class="mt-2 truncate font-mono text-[13px] text-neutral-500">
                   R{{ index + 1 }}: {{ constraintPreviews[index] }}
                 </p>
               </div>
@@ -378,7 +378,7 @@ onBeforeUnmount(() => {
             </button>
 
             <p
-              class="mt-3 rounded-lg border border-indigo-500/20 bg-indigo-500/5 px-2.5 py-2 text-[11px] text-indigo-200"
+              class="mt-3 rounded-lg border border-indigo-500/20 bg-indigo-500/5 px-2.5 py-2 text-[13px] text-indigo-200"
             >
               No negatividad implícita: <span class="font-mono">x₁ ≥ 0</span> y
               <span class="font-mono">x₂ ≥ 0</span>.
@@ -434,7 +434,7 @@ onBeforeUnmount(() => {
 
           <p
             v-if="!bridgeReady"
-            class="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-2 text-[11px] leading-relaxed text-amber-100"
+            class="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-2 text-[13px] leading-relaxed text-amber-100"
           >
             Motor Python no detectado. Ejecuta el módulo con
             <code class="rounded bg-black/30 px-1 py-0.5 font-mono">python -m optilab.graphic_method</code>
@@ -443,7 +443,7 @@ onBeforeUnmount(() => {
 
           <p
             v-if="error"
-            class="rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-2 text-[11px] leading-relaxed text-rose-100"
+            class="rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-2 text-[13px] leading-relaxed text-rose-100"
           >
             {{ error }}
           </p>
@@ -488,7 +488,7 @@ onBeforeUnmount(() => {
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p
-                  class="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-400"
+                  class="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400"
                 >
                   {{ statusTitle }}
                 </p>
@@ -523,7 +523,7 @@ onBeforeUnmount(() => {
 
             <div
               v-if="result.status === 'optimal'"
-              class="mt-3 flex flex-wrap gap-2 text-[11px] text-neutral-300"
+              class="mt-3 flex flex-wrap gap-2 text-[13px] text-neutral-300"
             >
               <span class="rounded-md bg-black/20 px-2 py-1">
                 Restricciones activas:
@@ -588,13 +588,13 @@ onBeforeUnmount(() => {
                 >
                   <div class="flex flex-wrap items-center justify-between gap-2">
                     <span
-                      class="rounded-full bg-indigo-500/15 px-2 py-0.5 text-[10px] font-semibold text-indigo-200 ring-1 ring-inset ring-indigo-500/30"
+                      class="rounded-full bg-indigo-500/15 px-2 py-0.5 text-xs font-semibold text-indigo-200 ring-1 ring-inset ring-indigo-500/30"
                     >
                       {{ item.label }}
                     </span>
                     <code class="text-xs text-indigo-200">{{ item.equation }}</code>
                   </div>
-                  <div class="mt-2 space-y-2 text-[11px] leading-relaxed">
+                  <div class="mt-2 space-y-2 text-[13px] leading-relaxed">
                     <div>
                       <div class="flex items-center gap-2">
                         <span class="text-neutral-500">Corte con x₁</span>
@@ -633,8 +633,8 @@ onBeforeUnmount(() => {
                       Modelo, cortes, intersecciones y evaluación de Z.
                     </p>
                   </div>
-                  <span class="text-[11px] text-neutral-500 group-open:hidden">Abrir</span>
-                  <span class="hidden text-[11px] text-neutral-500 group-open:inline">Cerrar</span>
+                  <span class="text-[13px] text-neutral-500 group-open:hidden">Abrir</span>
+                  <span class="hidden text-[13px] text-neutral-500 group-open:inline">Cerrar</span>
                 </summary>
                 <ol class="max-h-[460px] space-y-2 overflow-y-auto border-t border-neutral-800 p-4">
                   <li
@@ -642,9 +642,9 @@ onBeforeUnmount(() => {
                     :key="`${step.title}-${index}`"
                     class="rounded-lg border border-neutral-800 bg-neutral-950/60 p-3"
                   >
-                    <p class="text-[11px] font-semibold text-neutral-200">{{ step.title }}</p>
+                    <p class="text-[13px] font-semibold text-neutral-200">{{ step.title }}</p>
                     <p
-                      class="mt-1 whitespace-pre-line font-mono text-[11px] leading-relaxed text-neutral-400"
+                      class="mt-1 whitespace-pre-line font-mono text-[13px] leading-relaxed text-neutral-400"
                     >
                       {{ step.detail }}
                     </p>
@@ -668,7 +668,7 @@ onBeforeUnmount(() => {
                 </p>
               </div>
               <span
-                class="rounded-full bg-neutral-800 px-2.5 py-1 text-[10px] font-medium text-neutral-400"
+                class="rounded-full bg-neutral-800 px-2.5 py-1 text-xs font-medium text-neutral-400"
               >
                 {{ result.points.length }} puntos
               </span>
@@ -677,7 +677,7 @@ onBeforeUnmount(() => {
             <div class="overflow-x-auto">
               <table class="w-full min-w-[780px] text-left text-sm">
                 <thead
-                  class="bg-neutral-950/80 text-[10px] uppercase tracking-wider text-neutral-500"
+                  class="bg-neutral-950/80 text-xs uppercase tracking-wider text-neutral-500"
                 >
                   <tr>
                     <th class="px-4 py-2.5 font-medium">Punto</th>
@@ -696,7 +696,7 @@ onBeforeUnmount(() => {
                     :class="rowClass(point)"
                   >
                     <td class="px-4 py-2 font-mono text-xs font-semibold">{{ point.label }}</td>
-                    <td class="px-4 py-2 text-[11px] text-neutral-400">
+                    <td class="px-4 py-2 text-[13px] text-neutral-400">
                       {{ point.sources.join(' · ') }}
                     </td>
                     <td class="px-4 py-2 text-right font-mono text-xs">
@@ -710,7 +710,7 @@ onBeforeUnmount(() => {
                     </td>
                     <td class="px-4 py-2">
                       <span
-                        class="inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium"
+                        class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
                         :class="
                           point.feasible
                             ? 'bg-sky-500/15 text-sky-200'

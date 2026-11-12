@@ -23,7 +23,7 @@ const hayMejor = computed(() => props.filas.some((f) => f.iteraciones !== menosI
       Mismo problema resuelto con cada solución inicial. En verde, la que necesitó menos iteraciones de MODI.
     </p>
     <table class="w-full text-left">
-      <thead class="text-[11px] uppercase tracking-wider text-neutral-500">
+      <thead class="text-[13px] uppercase tracking-wider text-neutral-500">
         <tr>
           <th class="py-3 pr-5 font-medium">Solución inicial</th>
           <th class="py-3 pr-5 font-medium">Costo inicial</th>

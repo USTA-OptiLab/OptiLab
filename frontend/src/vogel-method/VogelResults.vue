@@ -133,7 +133,7 @@ function isSelectedCell(i, j) {
                   <th class="border-r border-b border-white/8 bg-[var(--color-neutral-800)] px-3 py-3 text-left text-slate-300">{{ rowLabels[i] }}</th>
                   <td v-for="(cost, j) in row" :key="j" class="border-r border-b border-white/8 px-3 py-2 tabular-nums" :class="isSelectedCell(i,j) ? 'bg-indigo-500/30 text-white ring-1 ring-inset ring-indigo-400' : !step.active_rows.includes(i) || !step.active_cols.includes(j) ? 'text-slate-600' : 'text-slate-300'">
                     <div class="font-semibold">{{ formatNumber(cost) }}</div>
-                    <div v-if="cumulative[i][j] > 0 || isSelectedCell(i,j)" class="mt-1 text-[10px] text-emerald-300">x = {{ formatNumber(cumulative[i][j]) }}</div>
+                    <div v-if="cumulative[i][j] > 0 || isSelectedCell(i,j)" class="mt-1 text-xs text-emerald-300">x = {{ formatNumber(cumulative[i][j]) }}</div>
                   </td>
                   <td class="border-r border-b border-white/8 px-3 py-3 text-indigo-200">{{ formatNumber(step.supply_before[i]) }}</td>
                   <td class="border-b border-white/8 px-3 py-3 font-bold text-amber-300">{{ step.row_penalties[i] === undefined ? '—' : formatNumber(step.row_penalties[i]) }}</td>

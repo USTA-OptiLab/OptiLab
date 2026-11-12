@@ -547,7 +547,7 @@ function formatCell(cell) {
                   <h2 class="text-base font-bold text-white">
                     Paso 1: Contexto y Enunciado del Problema
                   </h2>
-                  <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 font-semibold">
+                  <span class="text-[13px] px-2.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 font-semibold">
                     Antes de Iniciar el Ejercicio
                   </span>
                 </div>
@@ -594,7 +594,7 @@ function formatCell(cell) {
           <div class="space-y-1.5">
             <label class="text-xs font-semibold text-slate-300 flex items-center justify-between">
               <span>Enunciado Completo del Problema / Caso Real:</span>
-              <span class="text-[11px] text-slate-500">Pega aquí el problema antes de formular las ecuaciones</span>
+              <span class="text-[13px] text-slate-500">Pega aquí el problema antes de formular las ecuaciones</span>
             </label>
             <textarea
               v-model="contextStatement"
@@ -669,7 +669,7 @@ function formatCell(cell) {
                   >
                     <div class="flex items-center justify-between">
                       <span class="text-xs font-bold text-indigo-400 font-mono">{{ name }}</span>
-                      <span class="text-[10px] text-slate-500">Variable {{ idx + 1 }}</span>
+                      <span class="text-xs text-slate-500">Variable {{ idx + 1 }}</span>
                     </div>
                     <input
                       v-model="varDescriptions[idx]"
@@ -678,12 +678,12 @@ function formatCell(cell) {
                       class="w-full px-2 py-1 bg-slate-950 border border-slate-700/80 rounded text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
                     />
                     <div class="flex items-center gap-1.5">
-                      <span class="text-[10px] text-slate-400">Unidad:</span>
+                      <span class="text-xs text-slate-400">Unidad:</span>
                       <input
                         v-model="varUnits[idx]"
                         type="text"
                         placeholder="Ej. mesas, unidades"
-                        class="w-full px-2 py-0.5 bg-slate-950 border border-slate-700/80 rounded text-[11px] text-slate-300 focus:border-indigo-500 focus:outline-none"
+                        class="w-full px-2 py-0.5 bg-slate-950 border border-slate-700/80 rounded text-[13px] text-slate-300 focus:border-indigo-500 focus:outline-none"
                       />
                     </div>
                   </div>
@@ -703,7 +703,7 @@ function formatCell(cell) {
                   >
                     <div class="flex items-center justify-between">
                       <span class="text-xs font-bold text-slate-400 font-mono">R{{ rIdx + 1 }}</span>
-                      <span class="text-[10px] text-slate-500">{{ r.sign }} {{ r.rhs }}</span>
+                      <span class="text-xs text-slate-500">{{ r.sign }} {{ r.rhs }}</span>
                     </div>
                     <input
                       v-model="constraintDescriptions[rIdx]"
@@ -712,12 +712,12 @@ function formatCell(cell) {
                       class="w-full px-2 py-1 bg-slate-950 border border-slate-700/80 rounded text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
                     />
                     <div class="flex items-center gap-1.5">
-                      <span class="text-[10px] text-slate-400">Unidad:</span>
+                      <span class="text-xs text-slate-400">Unidad:</span>
                       <input
                         v-model="constraintUnits[rIdx]"
                         type="text"
                         placeholder="Ej. horas, kg, unidades"
-                        class="w-full px-2 py-0.5 bg-slate-950 border border-slate-700/80 rounded text-[11px] text-slate-300 focus:border-indigo-500 focus:outline-none"
+                        class="w-full px-2 py-0.5 bg-slate-950 border border-slate-700/80 rounded text-[13px] text-slate-300 focus:border-indigo-500 focus:outline-none"
                       />
                     </div>
                   </div>
@@ -1230,7 +1230,7 @@ function formatCell(cell) {
                   Fila saliente (Cociente mín.)
                 </span>
                 <span class="flex items-center gap-1.5">
-                  <span class="w-3 h-3 rounded bg-amber-400 font-bold text-black text-[9px] flex items-center justify-center">P</span>
+                  <span class="w-3 h-3 rounded bg-amber-400 font-bold text-black text-xs flex items-center justify-center">P</span>
                   Elemento Pivote
                 </span>
               </div>
@@ -1336,7 +1336,7 @@ function formatCell(cell) {
                 >
                   <div class="font-bold text-indigo-300 flex items-center justify-between">
                     <span>{{ op.formula }}</span>
-                    <span class="text-[10px] text-slate-400 uppercase">{{ op.type }}</span>
+                    <span class="text-xs text-slate-400 uppercase">{{ op.type }}</span>
                   </div>
                 </div>
               </div>
@@ -1503,7 +1503,7 @@ function formatCell(cell) {
                     </span>
                     <span
                       :class="[
-                        'text-[11px] px-2.5 py-0.5 rounded font-bold uppercase flex items-center gap-1.5',
+                        'text-[13px] px-2.5 py-0.5 rounded font-bold uppercase flex items-center gap-1.5',
                         rd.is_active
                           ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                           : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
@@ -1662,7 +1662,7 @@ function formatCell(cell) {
                 <div class="flex items-center gap-2">
                   <span
                     :class="[
-                      'px-2 py-0.5 rounded text-[11px] font-semibold',
+                      'px-2 py-0.5 rounded text-[13px] font-semibold',
                       sub.is_active
                         ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                         : 'bg-slate-800 text-slate-300'
